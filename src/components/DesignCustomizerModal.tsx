@@ -20,7 +20,6 @@ import { formatPrice } from "@/data/products";
 export interface CustomDesignData {
   productType: "keychain" | "magnet" | "mica-magnet";
   size: "S" | "L" | "XL";
-  foilEffect: "prism" | "starlight" | "aurora" | "crystal";
   imageUrl: string;
   imageName: string;
   quantity: number;
@@ -80,33 +79,6 @@ const sizeOptions = [
   { id: "XL" as const, label: "Size XL (15 cm)", scale: 1.25, priceOffset: 30000 },
 ];
 
-const foilEffects = [
-  {
-    id: "prism" as const,
-    name: "Bóng gương pha lê",
-    desc: "Mặt mica trong suốt 99.8%",
-    gradient: "from-pink-400 via-purple-400 to-sky-400",
-  },
-  {
-    id: "starlight" as const,
-    name: "Ánh sao Bling Bling",
-    desc: "Hạt sao nhũ bắt sáng lấp lánh",
-    gradient: "from-amber-300 via-pink-400 to-purple-400",
-  },
-  {
-    id: "aurora" as const,
-    name: "Cực quang chuyển sắc",
-    desc: "Đổi sắc nhẹ theo góc nhìn",
-    gradient: "from-emerald-300 via-sky-400 to-indigo-500",
-  },
-  {
-    id: "crystal" as const,
-    name: "Vát kim cương CNC",
-    desc: "Cạnh bóng loáng bắt sáng",
-    gradient: "from-sky-300 via-white to-pink-300",
-  },
-];
-
 export default function DesignCustomizerModal({
   isOpen,
   onClose,
@@ -118,9 +90,6 @@ export default function DesignCustomizerModal({
     initialProductType
   );
   const [size, setSize] = useState<"S" | "L" | "XL">(initialSize);
-  const [foilEffect, setFoilEffect] = useState<"prism" | "starlight" | "aurora" | "crystal">(
-    "prism"
-  );
   const [customImage, setCustomImage] = useState<string>(samplePresets[0].url);
   const [quantity, setQuantity] = useState(1);
   const [mouseRot, setMouseRot] = useState({ x: 0, y: 0 });
@@ -201,7 +170,6 @@ export default function DesignCustomizerModal({
         name: `${productTypes.find((p) => p.id === productType)?.name} LADA GIFT`,
         type: productType,
         size,
-        foil: foilEffect,
         image: customImage,
         unitPrice,
         quantity,
@@ -300,8 +268,8 @@ export default function DesignCustomizerModal({
                   </span>
                 </div>
                 <div className="flex justify-between py-1">
-                  <span>Hiệu ứng:</span>
-                  <span className="text-purple-300 capitalize">{foilEffect} Foil 4D</span>
+                  <span>Chất liệu:</span>
+                  <span className="text-pink-300">Mica đúc bóng gương CNC</span>
                 </div>
                 <div className="flex justify-between py-1">
                   <span>Số lượng:</span>
@@ -401,18 +369,8 @@ export default function DesignCustomizerModal({
                         className="h-full w-full object-cover object-center filter contrast-110"
                       />
 
-                      {/* Holographic Iridescent Reflection Overlay (Shifts with foil selection) */}
-                      <div
-                        className={`pointer-events-none absolute inset-0 opacity-55 mix-blend-color-dodge transition-all duration-500 ${
-                          foilEffect === "prism"
-                            ? "bg-gradient-to-tr from-cyan-400/40 via-purple-500/40 to-pink-500/40"
-                            : foilEffect === "starlight"
-                            ? "bg-[radial-gradient(circle,_rgba(255,255,255,0.8)_10%,_transparent_40%),_linear-gradient(45deg,_rgba(234,179,8,0.4),_rgba(168,85,247,0.4))]"
-                            : foilEffect === "aurora"
-                            ? "bg-gradient-to-bl from-emerald-400/40 via-cyan-400/30 to-indigo-600/50"
-                            : "bg-[linear-gradient(115deg,_rgba(255,255,255,0.5)_20%,_transparent_40%,_rgba(0,212,255,0.4)_70%)]"
-                        }`}
-                      />
+                      {/* Mica Gloss Reflection Overlay */}
+                      <div className="pointer-events-none absolute inset-0 opacity-45 mix-blend-color-dodge bg-gradient-to-tr from-cyan-400/30 via-purple-500/25 to-pink-500/30" />
 
                       {/* Moving light sweep shine */}
                       <div
@@ -512,38 +470,11 @@ export default function DesignCustomizerModal({
                     </div>
                   </div>
 
-                  {/* Step 3: Choose Surface Effect */}
-                  <div>
-                    <label className="text-xs font-semibold tracking-wider uppercase text-pink-400">
-                      3. Tùy chọn hiệu ứng bề mặt Mica LADA GIFT
-                    </label>
-                    <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {foilEffects.map((f) => (
-                        <button
-                          key={f.id}
-                          type="button"
-                          onClick={() => setFoilEffect(f.id)}
-                          className={`p-2.5 rounded-xl border text-left transition duration-200 ${
-                            foilEffect === f.id
-                              ? "border-pink-400 bg-pink-500/20 text-white shadow-lg shadow-pink-500/10"
-                              : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
-                          }`}
-                        >
-                          <div
-                            className={`h-2.5 w-full rounded-full bg-gradient-to-r ${f.gradient} mb-2`}
-                          />
-                          <div className="text-xs font-bold text-white">{f.name}</div>
-                          <div className="text-[10px] text-zinc-400 truncate mt-0.5">{f.desc}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Step 4: Upload Image OR Pick Presets */}
+                  {/* Step 3: Upload Image OR Pick Presets */}
                   <div>
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold tracking-wider uppercase text-cyan-400">
-                        4. Tải ảnh của bạn hoặc chọn ảnh mẫu
+                        3. Tải ảnh của bạn hoặc chọn ảnh mẫu
                       </label>
                       <button
                         type="button"
