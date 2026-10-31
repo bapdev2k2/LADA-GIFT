@@ -144,24 +144,10 @@ export default function DesignCustomizerModal({
   const replacingItemIdRef = useRef<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Mỗi khi loading lại trang web: Xóa sạch thông tin cũ trong giỏ hàng và biểu mẫu
+  // Mỗi khi loading lại trang web: Xóa sạch thông tin cũ trong giỏ hàng và biểu mẫu (bắt đầu giỏ hàng trống 0 sản phẩm)
   useEffect(() => {
     clearCartStorage();
-
-    // Khởi tạo sản phẩm mới hoàn toàn
-    const initialItem: CartItem = {
-      id: `item-${Date.now()}-1`,
-      productType: initialProductType,
-      productName: PRODUCT_CONFIGS[initialProductType]?.name || "Móc khóa mica",
-      size: initialSize,
-      sizeValue: SIZE_CONFIGS[initialSize]?.dimension || "10 cm",
-      quantity: 1,
-      imagePreview: samplePresets[0].url,
-      imageName: "lada-gift-logo.jpg",
-      unitPrice: calculateItemPrice(initialProductType, initialSize, 1).unitPrice,
-      subtotal: calculateItemPrice(initialProductType, initialSize, 1).subtotal,
-    };
-    setCartItems([initialItem]);
+    setCartItems([]);
     setActivePreviewIndex(0);
 
     // Xóa sạch thông tin khách hàng cũ
@@ -328,10 +314,6 @@ export default function DesignCustomizerModal({
 
   // Delete an item from cart
   const handleDeleteItem = (id: string) => {
-    if (cartItems.length <= 1) {
-      alert("Đơn hàng cần có ít nhất 1 sản phẩm. Bạn có thể thay đổi cấu hình hoặc đổi ảnh của sản phẩm này!");
-      return;
-    }
     setCartItems((prev) => prev.filter((it) => it.id !== id));
     setActivePreviewIndex(0);
   };
@@ -729,7 +711,7 @@ export default function DesignCustomizerModal({
                     {autoRotate ? "Dừng xoay" : "Tự động xoay"}
                   </button>
                   <span className="text-[11px] font-bold text-slate-500 font-mono">
-                    Đang xem: {PRODUCT_CONFIGS[previewType]?.name} ({previewSize})
+                    {activeItem ? "Đang xem từ giỏ:" : "Xem thử thiết kế:"} {PRODUCT_CONFIGS[previewType]?.name} ({previewSize})
                   </span>
                 </div>
               </div>
@@ -932,104 +914,116 @@ export default function DesignCustomizerModal({
                       </span>
                     </div>
 
-                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                      {cartItems.map((item, index) => {
-                        const isCurrentlyActiveIn3D = activePreviewIndex === index;
-                        return (
-                          <div
-                            key={item.id}
-                            className={`flex items-center justify-between gap-3 p-3 rounded-2xl border transition ${
-                              isCurrentlyActiveIn3D
-                                ? "border-2 border-pink-400 bg-pink-50/60 shadow-sm"
-                                : "border-pink-200/70 bg-white/90 hover:border-pink-300"
-                            }`}
-                          >
-                            {/* Left: Thumbnail & details */}
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="relative h-12 w-12 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0 bg-slate-50">
-                                <img
-                                  src={item.imagePreview}
-                                  alt={item.productName}
-                                  className="h-full w-full object-cover"
-                                />
-                                {isCurrentlyActiveIn3D && (
-                                  <span className="absolute bottom-0 inset-x-0 bg-pink-600 text-[8px] font-black text-white text-center py-0.5">
-                                    Đang xem 3D
-                                  </span>
-                                )}
-                              </div>
+                    {cartItems.length === 0 ? (
+                      <div className="rounded-2xl border-2 border-dashed border-pink-200 bg-pink-50/40 p-5 text-center">
+                        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-pink-100 text-pink-500 mb-2">
+                          <ShoppingBag className="h-5 w-5" />
+                        </div>
+                        <p className="text-xs font-bold text-[#1E1035]">Giỏ hàng của bạn đang trống</p>
+                        <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
+                          Hãy chọn loại sản phẩm, tải ảnh và nhấn <span className="font-bold text-pink-600">"+ Thêm sản phẩm này vào giỏ"</span> ở trên để lên đơn nhé!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                        {cartItems.map((item, index) => {
+                          const isCurrentlyActiveIn3D = activePreviewIndex === index;
+                          return (
+                            <div
+                              key={item.id}
+                              className={`flex items-center justify-between gap-3 p-3 rounded-2xl border transition ${
+                                isCurrentlyActiveIn3D
+                                  ? "border-2 border-pink-400 bg-pink-50/60 shadow-sm"
+                                  : "border-pink-200/70 bg-white/90 hover:border-pink-300"
+                              }`}
+                            >
+                              {/* Left: Thumbnail & details */}
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="relative h-12 w-12 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0 bg-slate-50">
+                                  <img
+                                    src={item.imagePreview}
+                                    alt={item.productName}
+                                    className="h-full w-full object-cover"
+                                  />
+                                  {isCurrentlyActiveIn3D && (
+                                    <span className="absolute bottom-0 inset-x-0 bg-pink-600 text-[8px] font-black text-white text-center py-0.5">
+                                      Đang xem 3D
+                                    </span>
+                                  )}
+                                </div>
 
-                              <div className="min-w-0">
-                                <h5 className="text-xs font-black text-[#1E1035] truncate leading-tight">
-                                  {item.productName}
-                                </h5>
-                                <p className="text-[10px] font-bold text-slate-500 mt-0.5">
-                                  Size: <span className="text-pink-600">{item.sizeValue}</span> •{" "}
-                                  <span className="text-purple-700">{formatPrice(item.unitPrice)}/c</span>
-                                </p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => setActivePreviewIndex(index)}
-                                    className="text-[10px] font-bold text-sky-600 hover:text-sky-700 flex items-center gap-0.5 cursor-pointer"
-                                  >
-                                    <Eye className="h-3 w-3" /> Xem 3D
-                                  </button>
-                                  <span className="text-slate-300">•</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      replacingItemIdRef.current = item.id;
-                                      replaceItemFileInputRef.current?.click();
-                                    }}
-                                    className="text-[10px] font-bold text-purple-600 hover:text-purple-700 flex items-center gap-0.5 cursor-pointer"
-                                  >
-                                    <ImageIcon className="h-3 w-3" /> Đổi ảnh
-                                  </button>
+                                <div className="min-w-0">
+                                  <h5 className="text-xs font-black text-[#1E1035] truncate leading-tight">
+                                    {item.productName}
+                                  </h5>
+                                  <p className="text-[10px] font-bold text-slate-500 mt-0.5">
+                                    Size: <span className="text-pink-600">{item.sizeValue}</span> •{" "}
+                                    <span className="text-purple-700">{formatPrice(item.unitPrice)}/c</span>
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => setActivePreviewIndex(index)}
+                                      className="text-[10px] font-bold text-sky-600 hover:text-sky-700 flex items-center gap-0.5 cursor-pointer"
+                                    >
+                                      <Eye className="h-3 w-3" /> Xem 3D
+                                    </button>
+                                    <span className="text-slate-300">•</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        replacingItemIdRef.current = item.id;
+                                        replaceItemFileInputRef.current?.click();
+                                      }}
+                                      className="text-[10px] font-bold text-purple-600 hover:text-purple-700 flex items-center gap-0.5 cursor-pointer"
+                                    >
+                                      <ImageIcon className="h-3 w-3" /> Đổi ảnh
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
 
-                            {/* Right: Quantity, Subtotal, Delete */}
-                            <div className="flex items-center gap-3 flex-shrink-0">
-                              {/* Quantity buttons */}
-                              <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-xs">
-                                <button
-                                  type="button"
-                                  onClick={() => handleUpdateItemQty(item.id, -1)}
-                                  className="px-2 py-0.5 text-xs text-slate-600 hover:text-pink-600 font-bold cursor-pointer"
-                                >
-                                  -
-                                </button>
-                                <span className="px-2 py-0.5 text-xs font-black text-[#1E1035] min-w-[20px] text-center">
-                                  {item.quantity}
+                              {/* Right: Quantity, Subtotal, Delete */}
+                              <div className="flex items-center gap-3 flex-shrink-0">
+                                {/* Quantity buttons */}
+                                <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-xs">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateItemQty(item.id, -1)}
+                                    className="px-2 py-0.5 text-xs text-slate-600 hover:text-pink-600 font-bold cursor-pointer"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="px-2 py-0.5 text-xs font-black text-[#1E1035] min-w-[20px] text-center">
+                                    {item.quantity}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateItemQty(item.id, 1)}
+                                    className="px-2 py-0.5 text-xs text-slate-600 hover:text-pink-600 font-bold cursor-pointer"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+
+                                <span className="text-xs font-black text-slate-800 font-mono w-16 text-right">
+                                  {formatPrice(item.subtotal)}
                                 </span>
+
                                 <button
                                   type="button"
-                                  onClick={() => handleUpdateItemQty(item.id, 1)}
-                                  className="px-2 py-0.5 text-xs text-slate-600 hover:text-pink-600 font-bold cursor-pointer"
+                                  onClick={() => handleDeleteItem(item.id)}
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition cursor-pointer"
+                                  title="Xóa sản phẩm này"
                                 >
-                                  +
+                                  <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                               </div>
-
-                              <span className="text-xs font-black text-slate-800 font-mono w-16 text-right">
-                                {formatPrice(item.subtotal)}
-                              </span>
-
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteItem(item.id)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition cursor-pointer"
-                                title="Xóa sản phẩm này"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {/* ========================================================= */}
@@ -1099,12 +1093,17 @@ export default function DesignCustomizerModal({
                       <button
                         type="submit"
                         disabled={isSubmitting || cartItems.length === 0}
-                        className="flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-6 sm:px-8 py-3.5 text-sm sm:text-base font-black text-white shadow-lg shadow-pink-300/50 hover:brightness-110 active:scale-95 transition disabled:opacity-50 cursor-pointer"
+                        className="flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-6 sm:px-8 py-3.5 text-sm sm:text-base font-black text-white shadow-lg shadow-pink-300/50 hover:brightness-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                       >
                         {isSubmitting ? (
                           <>
                             <RotateCw className="h-4 w-4 animate-spin text-white" />
                             <span>Đang lưu đơn hàng...</span>
+                          </>
+                        ) : cartItems.length === 0 ? (
+                          <>
+                            <ShoppingBag className="h-4 w-4" />
+                            <span>Vui lòng thêm sản phẩm vào giỏ</span>
                           </>
                         ) : (
                           <>
