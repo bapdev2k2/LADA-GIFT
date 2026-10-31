@@ -2,20 +2,42 @@
  * ==============================================================================
  * LADA GIFT - GOOGLE APPS SCRIPT WEB APP API
  * ==============================================================================
- * Hệ thống tự động tiếp nhận đơn hàng:
- * 1. Nhận thông tin khách hàng & nhiều sản phẩm từ Landing Page
- * 2. Tự động tạo thư mục trên Google Drive theo cấu trúc: LADA_GIFT_ORDERS / YYYY / MM / LADA-YYYYMMDD-XXX
- * 3. Tải và lưu ảnh gốc của từng sản phẩm vào đúng thư mục đơn hàng
- * 4. Tự động ghi dữ liệu vào 3 Sheet: ORDERS, ORDER_ITEMS, CONFIG
- * 5. Trả kết quả JSON về cho Frontend
+ * Spreadsheet liên kết: 
+ * https://docs.google.com/spreadsheets/d/1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA/edit
+ * ID: 1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA
+ *
+ * Chức năng:
+ * 1. Tiếp nhận dữ liệu đơn hàng (POST request) từ website LADA GIFT.
+ * 2. Tự động khởi tạo & định dạng 3 sheet: ORDERS, ORDER_ITEMS, CONFIG.
+ * 3. Tự động tạo cây thư mục trên Google Drive: LADA_GIFT_ORDERS / YYYY / MM / [Mã Đơn].
+ * 4. Tải và lưu ảnh gốc của từng sản phẩm vào thư mục đơn hàng tương ứng.
+ * 5. Ghi thông tin đơn và link ảnh vào Google Sheets.
+ * 6. Trả phản hồi JSON thành công hoặc thông báo lỗi về website.
  * ==============================================================================
  */
+
+// ID Spreadsheet của bạn (Đã tích hợp cố định)
+const SPREADSHEET_ID = "1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA";
 
 // Tên thư mục gốc lưu ảnh trên Google Drive
 const ROOT_FOLDER_NAME = "LADA_GIFT_ORDERS";
 
 /**
- * Xử lý yêu cầu POST từ Next.js / Frontend
+ * Lấy đối tượng Spreadsheet
+ */
+function getSpreadsheet() {
+  if (SPREADSHEET_ID && SPREADSHEET_ID.trim() !== "") {
+    try {
+      return SpreadsheetApp.openById(SPREADSHEET_ID.trim());
+    } catch (e) {
+      Logger.log("Không thể mở bằng ID, sử dụng getActiveSpreadsheet(): " + e.toString());
+    }
+  }
+  return SpreadsheetApp.getActiveSpreadsheet();
+}
+
+/**
+ * Xử lý yêu cầu POST gửi đơn hàng từ Website
  */
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -44,9 +66,13 @@ function doPost(e) {
     const payload = JSON.parse(e.postData.contents);
     const customer = payload.customer || {};
     const items = payload.items || [];
-    const orderId = payload.orderId || ("LADA-" + Utilities.formatDate(new Date(), "GMT+7", "yyyyMMdd-") + Math.floor(100 + Math.random() * 900));
-    const createdAt = payload.createdAt || new Date().toISOString();
+    const now = new Date();
+    const orderId =
+      payload.orderId ||
+      ("LADA-" + Utilities.formatDate(now, "GMT+7", "yyyyMMdd-") + Math.floor(100 + Math.random() * 900));
+    const createdAt = payload.createdAt || Utilities.formatDate(now, "GMT+7", "yyyy-MM-dd HH:mm:ss");
 
+    // 1. Kiểm tra dữ liệu bắt buộc
     if (!customer.customerName || !customer.phone) {
       return ContentService.createTextOutput(
         JSON.stringify({
@@ -60,13 +86,12 @@ function doPost(e) {
       return ContentService.createTextOutput(
         JSON.stringify({
           success: false,
-          message: "Đơn hàng không có sản phẩm nào!",
+          message: "Đơn hàng chưa có sản phẩm nào!",
         })
       ).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // 1. Quản lý thư mục Google Drive: LADA_GIFT_ORDERS / YYYY / MM / orderId
-    const now = new Date();
+    // 2. Quản lý thư mục Google Drive: LADA_GIFT_ORDERS / YYYY / MM / [orderId]
     const yearStr = Utilities.formatDate(now, "GMT+7", "yyyy");
     const monthStr = Utilities.formatDate(now, "GMT+7", "MM");
 
@@ -75,14 +100,14 @@ function doPost(e) {
     const monthFolder = getOrCreateFolder(yearFolder, monthStr);
     const orderFolder = getOrCreateFolder(monthFolder, orderId);
 
-    // 2. Tự động khởi tạo và chuẩn bị 3 Sheet
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    // 3. Chuẩn bị bảng tính Spreadsheet & 3 Sheet
+    const ss = getSpreadsheet();
     setupSheetsIfNotExist(ss);
 
     const ordersSheet = ss.getSheetByName("ORDERS");
     const orderItemsSheet = ss.getSheetByName("ORDER_ITEMS");
 
-    // 3. Xử lý lưu từng ảnh vào Drive & ghi nhận từng Item
+    // 4. Lưu từng ảnh vào Google Drive và ghi vào Sheet ORDER_ITEMS
     let totalItems = items.length;
     let totalQuantity = 0;
     let computedTotalPrice = 0;
@@ -120,7 +145,7 @@ function doPost(e) {
         fileUrl = it.imageBase64;
       }
 
-      // Ghi vào Sheet ORDER_ITEMS
+      // Ghi dòng sản phẩm vào Sheet ORDER_ITEMS
       // [item_id, order_id, product_type, product_name, size, quantity, unit_price, subtotal, image_name, image_file_id, image_url, created_at]
       orderItemsSheet.appendRow([
         it.itemId || ("item-" + (i + 1)),
@@ -138,7 +163,7 @@ function doPost(e) {
       ]);
     }
 
-    // 4. Ghi thông tin chung vào Sheet ORDERS
+    // 5. Ghi thông tin chung vào Sheet ORDERS
     // [order_id, created_at, customer_name, phone, address, note, total_items, total_quantity, total_price, status]
     ordersSheet.appendRow([
       orderId,
@@ -153,6 +178,7 @@ function doPost(e) {
       "PENDING",
     ]);
 
+    // 6. Trả phản hồi thành công
     return ContentService.createTextOutput(
       JSON.stringify({
         success: true,
@@ -166,7 +192,7 @@ function doPost(e) {
     return ContentService.createTextOutput(
       JSON.stringify({
         success: false,
-        message: "Lỗi xử lý: " + error.toString(),
+        message: "Lỗi xử lý đơn hàng: " + error.toString(),
       })
     ).setMimeType(ContentService.MimeType.JSON);
   } finally {
@@ -175,14 +201,16 @@ function doPost(e) {
 }
 
 /**
- * Xử lý GET test kiểm tra kết nối API
+ * Xử lý GET test kiểm tra kết nối API qua trình duyệt
  */
 function doGet() {
   return ContentService.createTextOutput(
     JSON.stringify({
       status: "ONLINE",
       app: "LADA GIFT Order Management Web App",
+      spreadsheetId: SPREADSHEET_ID,
       timestamp: new Date().toISOString(),
+      message: "API hoạt động bình thường và sẵn sàng tiếp nhận đơn hàng!",
     })
   ).setMimeType(ContentService.MimeType.JSON);
 }
@@ -199,13 +227,21 @@ function getOrCreateFolder(parentFolder, folderName) {
 }
 
 /**
- * Tự động tạo cấu trúc 3 Sheet nếu chưa tồn tại
+ * Tự động tạo và định dạng cấu trúc 3 Sheet nếu chưa tồn tại
  */
 function setupSheetsIfNotExist(ss) {
   // 1. Sheet ORDERS
   let ordersSheet = ss.getSheetByName("ORDERS");
   if (!ordersSheet) {
-    ordersSheet = ss.insertSheet("ORDERS");
+    // Nếu có Sheet mặc định rỗng (Sheet1 hoặc Trang tính 1), đổi tên thành ORDERS
+    const sheets = ss.getSheets();
+    if (sheets.length === 1 && sheets[0].getLastRow() === 0) {
+      ordersSheet = sheets[0];
+      ordersSheet.setName("ORDERS");
+    } else {
+      ordersSheet = ss.insertSheet("ORDERS");
+    }
+
     ordersSheet.appendRow([
       "order_id",
       "created_at",
@@ -218,7 +254,9 @@ function setupSheetsIfNotExist(ss) {
       "total_price",
       "status",
     ]);
-    ordersSheet.getRange(1, 1, 1, 10).setFontWeight("bold").setBackground("#FCE7F3");
+    const headerRange = ordersSheet.getRange(1, 1, 1, 10);
+    headerRange.setFontWeight("bold").setBackground("#FCE7F3").setFontColor("#1E1035");
+    ordersSheet.setFrozenRows(1);
   }
 
   // 2. Sheet ORDER_ITEMS
@@ -239,7 +277,9 @@ function setupSheetsIfNotExist(ss) {
       "image_url",
       "created_at",
     ]);
-    itemsSheet.getRange(1, 1, 1, 12).setFontWeight("bold").setBackground("#EDE9FE");
+    const headerRange = itemsSheet.getRange(1, 1, 1, 12);
+    headerRange.setFontWeight("bold").setBackground("#EDE9FE").setFontColor("#1E1035");
+    itemsSheet.setFrozenRows(1);
   }
 
   // 3. Sheet CONFIG
@@ -247,16 +287,29 @@ function setupSheetsIfNotExist(ss) {
   if (!configSheet) {
     configSheet = ss.insertSheet("CONFIG");
     configSheet.appendRow(["config_key", "config_value", "description"]);
-    configSheet.getRange(1, 1, 1, 3).setFontWeight("bold").setBackground("#E0F2FE");
+    const headerRange = configSheet.getRange(1, 1, 1, 3);
+    headerRange.setFontWeight("bold").setBackground("#E0F2FE").setFontColor("#1E1035");
+    configSheet.setFrozenRows(1);
 
-    // Dữ liệu mẫu cấu hình
-    configSheet.appendRow(["STORE_NAME", "LADA GIFT - Gift From The Heart", "Tên cửa hàng"]);
+    // Cấu hình mẫu ban đầu
+    configSheet.appendRow(["STORE_NAME", "LADA GIFT - Gift From The Heart", "Tên thương hiệu"]);
     configSheet.appendRow(["PRICE_KEYCHAIN", "35000", "Giá cơ bản Móc khóa mica (Size S)"]);
     configSheet.appendRow(["PRICE_MAGNET", "25000", "Giá cơ bản Nam châm in hình (Size S)"]);
     configSheet.appendRow(["PRICE_MICA_MAGNET", "45000", "Giá cơ bản Mica nam châm (Size S)"]);
     configSheet.appendRow(["SURCHARGE_SIZE_L", "10000", "Phụ thu kích thước L (10cm)"]);
     configSheet.appendRow(["SURCHARGE_SIZE_XL", "30000", "Phụ thu kích thước XL (15cm)"]);
     configSheet.appendRow(["FREE_SHIPPING_MIN_QTY", "2", "Số lượng tối thiểu được freeship"]);
-    configSheet.appendRow(["MAX_FILE_SIZE_MB", "15", "Dung lượng ảnh tối đa (MB)"]);
+    configSheet.appendRow(["MAX_FILE_SIZE_MB", "20", "Dung lượng ảnh tối đa (MB)"]);
   }
+}
+
+/**
+ * HÀM TEST TRỰC TIẾP TRONG APPS SCRIPT:
+ * Bạn có thể chọn hàm 'testSpreadsheetSetup' trong dropdown của Apps Script rồi nhấn 'Run'
+ * để kiểm tra tạo bảng tính và đơn mẫu ngay lập tức!
+ */
+function testSpreadsheetSetup() {
+  const ss = getSpreadsheet();
+  setupSheetsIfNotExist(ss);
+  Logger.log("Đã khởi tạo thành công 3 Sheet trong Spreadsheet ID: " + SPREADSHEET_ID);
 }
