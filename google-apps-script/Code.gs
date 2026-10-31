@@ -305,11 +305,46 @@ function setupSheetsIfNotExist(ss) {
 
 /**
  * HÀM TEST TRỰC TIẾP TRONG APPS SCRIPT:
- * Bạn có thể chọn hàm 'testSpreadsheetSetup' trong dropdown của Apps Script rồi nhấn 'Run'
- * để kiểm tra tạo bảng tính và đơn mẫu ngay lập tức!
+ * Bạn có thể chọn hàm 'testSpreadsheetSetup' hoặc 'testCreateSampleOrder' trong dropdown của Apps Script rồi nhấn 'Chạy' (Run)
+ * để kiểm tra cấp quyền Google Drive, Google Sheets và tạo thử 1 đơn hàng mẫu ngay lập tức!
  */
 function testSpreadsheetSetup() {
   const ss = getSpreadsheet();
   setupSheetsIfNotExist(ss);
   Logger.log("Đã khởi tạo thành công 3 Sheet trong Spreadsheet ID: " + SPREADSHEET_ID);
+}
+
+function testCreateSampleOrder() {
+  const fakeEvent = {
+    postData: {
+      contents: JSON.stringify({
+        orderId: "TEST-" + Math.floor(1000 + Math.random() * 9000),
+        createdAt: Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd HH:mm:ss"),
+        customer: {
+          customerName: "Khách hàng Test",
+          phone: "0987654321",
+          address: "123 Cầu Giấy, Hà Nội",
+          note: "Đơn test thử nghiệm trực tiếp từ Apps Script"
+        },
+        items: [
+          {
+            itemId: "item-test-1",
+            productType: "keychain",
+            productName: "Móc khóa mica",
+            size: "S",
+            sizeValue: "7.5 cm",
+            quantity: 2,
+            unitPrice: 35000,
+            subtotal: 70000,
+            imageName: "test.jpg"
+          }
+        ],
+        totalItems: 1,
+        totalQuantity: 2,
+        totalPrice: 70000
+      })
+    }
+  };
+  const res = doPost(fakeEvent);
+  Logger.log("Kết quả test: " + res.getContent());
 }
