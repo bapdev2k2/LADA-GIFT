@@ -130,7 +130,6 @@ export default function ProductRotation({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const platformRef = useRef<HTMLDivElement>(null);
 
   // References for pure 120 FPS continuous loop without React re-renders
   const isHoveredAreaRef = useRef(false);
@@ -180,12 +179,6 @@ export default function ProductRotation({
         : 10.5;
 
       angleRef.current = (angleRef.current + delta * rotationSpeed) % 360;
-
-      // Smooth scale for central platform ring
-      if (platformRef.current) {
-        const ringScale = isHoveredAreaRef.current ? 1.25 : 1.0;
-        platformRef.current.style.transform = `rotateX(75deg) scale(${ringScale})`;
-      }
 
       // Update each 3D card position directly via DOM style (ZERO React setState during loop)
       const total = showcaseProducts.length;
@@ -285,16 +278,10 @@ export default function ProductRotation({
           }}
           className="relative mt-8 mx-auto h-[520px] sm:h-[600px] w-full max-w-6xl flex items-center justify-center perspective-[1200px]"
         >
-          {/* Central Bling Bling Platform with Expanded Size */}
+          {/* Central Bling Bling Ambient Glow (Loại bỏ hoàn toàn đĩa viền cắt ngang) */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-            {/* Base platform ellipse ring */}
-            <div
-              ref={platformRef}
-              className="w-80 sm:w-[560px] h-32 sm:h-52 rounded-[100%] border-2 border-pink-400/60 bg-gradient-to-b from-white/70 to-pink-200/30 backdrop-blur-md shadow-[0_0_70px_rgba(244,114,182,0.45)] transition-transform duration-500 ease-out"
-              style={{ transform: "rotateX(75deg)" }}
-            />
-            {/* Glowing core center */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-28 w-28 rounded-full bg-gradient-to-tr from-pink-400 via-purple-400 to-cyan-400 opacity-60 blur-xl animate-pulse" />
+            {/* Soft glowing core center */}
+            <div className="h-44 w-44 rounded-full bg-gradient-to-tr from-pink-400/40 via-purple-400/35 to-cyan-400/35 blur-3xl animate-pulse" />
 
             {/* Center Bling Stars */}
             <BlingSparkle top="-35px" left="30px" delay={0} size={24} />
