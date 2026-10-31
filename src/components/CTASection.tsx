@@ -8,6 +8,7 @@ import {
   useInView,
 } from "framer-motion";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useLanguage } from "@/lib/i18n";
 
 /* -------------------------------------------------------------------------- */
 /*  Acrylic product SVG with holographic rainbow edge glow                     */
@@ -250,6 +251,7 @@ interface CTASectionProps {
 }
 
 export default function CTASection({ onOpenCustomizer }: CTASectionProps = {}) {
+  const { t } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
   const reducedMotion = useReducedMotion();
@@ -324,14 +326,13 @@ export default function CTASection({ onOpenCustomizer }: CTASectionProps = {}) {
               variants={fadeUp}
               className="mb-8 max-w-md text-base font-semibold leading-relaxed text-slate-700 sm:text-lg"
             >
-              Lưu giữ những khoảnh khắc đặc biệt theo cách độc đáo nhất cùng{" "}
-              <span className="font-black text-[#1E1035]">LADA GIFT</span> — Món quà trao gửi trọn vẹn yêu thương từ trái tim.
+              {t("cta_desc")}
             </motion.p>
 
             {/* CTA Button */}
             <motion.div variants={fadeUp}>
               <MagneticCTAButton onClick={onOpenCustomizer}>
-                CREATE YOUR OWN
+                {t("cta_btn").toUpperCase()}
               </MagneticCTAButton>
             </motion.div>
           </div>

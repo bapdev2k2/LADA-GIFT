@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 /* -------------------------------------------------------------------------- */
 /*  Showcase Products Data for LADA GIFT (Using real workshop photos)         */
@@ -128,6 +129,7 @@ export default function ProductRotation({
 }: {
   onOpenCustomizer?: () => void;
 }) {
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -238,7 +240,7 @@ export default function ProductRotation({
             className="inline-flex items-center gap-2 rounded-full border border-pink-300/80 bg-white/80 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-pink-700 shadow-sm backdrop-blur-md"
           >
             <Sparkles className="h-3.5 w-3.5 text-pink-500 animate-pulse" />
-            <span>LADA GIFT • Trải nghiệm 360° không gian 3D</span>
+            <span>LADA GIFT • 360° Studio</span>
           </motion.div>
 
           <motion.h2
@@ -248,7 +250,7 @@ export default function ProductRotation({
             transition={{ delay: 0.1 }}
             className="mt-4 text-3xl font-black tracking-tight text-[#1E1035] sm:text-5xl"
           >
-            SHOWROOM 360°{" "}
+            {t("showroom_title")}{" "}
             <span className="bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 bg-clip-text text-transparent">
               LADA GIFT
             </span>
@@ -261,7 +263,7 @@ export default function ProductRotation({
             transition={{ delay: 0.2 }}
             className="mt-3 text-sm sm:text-base font-semibold text-slate-700 max-w-xl mx-auto"
           >
-            Sản phẩm tự động quay 360° liên tục. Vòng xoay tự động mở rộng khi rê chuột lại gần và tạm dừng khi trỏ vào sản phẩm.
+            {t("showroom_desc")}
           </motion.p>
         </div>
 

@@ -67,9 +67,16 @@ function doPost(e) {
     const customer = payload.customer || {};
     const items = payload.items || [];
     const now = new Date();
+
+    // Xác định quốc gia & tiền tố mã đơn: Việt Nam -> MC, Thái Lan -> TL
+    const countryRaw = (payload.country || customer.country || "VN").toString().toUpperCase();
+    const isThai = countryRaw === "TH" || countryRaw.includes("THAI") || countryRaw.includes("THÁI");
+    const prefix = isThai ? "TL" : "MC";
+    const countryName = isThai ? "Thái Lan" : "Việt Nam";
+
     const orderId =
       payload.orderId ||
-      ("LADA-" + Utilities.formatDate(now, "GMT+7", "yyyyMMdd-") + Math.floor(100 + Math.random() * 900));
+      (prefix + "-" + Utilities.formatDate(now, "GMT+7", "yyyyMMdd-") + Math.floor(100 + Math.random() * 900));
     const createdAt = payload.createdAt || Utilities.formatDate(now, "GMT+7", "yyyy-MM-dd HH:mm:ss");
 
     // 1. Kiểm tra dữ liệu bắt buộc
@@ -165,12 +172,16 @@ function doPost(e) {
 
     // 5. Ghi thông tin chung vào Sheet ORDERS
     // [order_id, created_at, customer_name, phone, address, note, total_items, total_quantity, total_price, status]
+    const customerAddress = (customer.address || "").includes(countryName)
+      ? (customer.address || "")
+      : ("[" + countryName + "] " + (customer.address || ""));
+
     ordersSheet.appendRow([
       orderId,
       createdAt,
       customer.customerName,
       customer.phone,
-      customer.address || "",
+      customerAddress,
       customer.note || "",
       totalItems,
       totalQuantity,

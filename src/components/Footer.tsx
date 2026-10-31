@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Mail, Phone, MapPin, Heart } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 /* -------------------------------------------------------------------------- */
 /*  Social Brand SVG icons                                                    */
@@ -129,6 +130,7 @@ function FooterLinkItem({ link }: { link: FooterLink }) {
 /* -------------------------------------------------------------------------- */
 
 export default function Footer() {
+  const { t } = useLanguage();
   const footerRef = useRef<HTMLElement>(null);
   const isInView = useInView(footerRef, { once: true, margin: "-50px" });
 
@@ -165,14 +167,14 @@ export default function Footer() {
                   LADA GIFT
                 </span>
                 <span className="text-[10px] font-bold text-pink-600 uppercase tracking-widest mt-1 block">
-                  Gift From The Heart
+                  {t("tagline")}
                 </span>
               </div>
             </div>
 
             {/* Description */}
             <p className="mb-6 max-w-xs text-sm font-medium leading-relaxed text-slate-600">
-              Chuyên thiết kế & sản xuất các sản phẩm mica in hình, móc khóa quà tặng, nam châm cá nhân hóa cao cấp.
+              {t("footer_desc")}
             </p>
 
             {/* Social icons */}

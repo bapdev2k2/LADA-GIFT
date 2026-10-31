@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { type Product, products, formatPrice } from "@/data/products";
+import { useLanguage } from "@/lib/i18n";
 
 /* ------------------------------------------------------------------ */
 /*  SVG illustrations per product category                            */
@@ -243,6 +244,7 @@ interface CardProps {
 }
 
 function ProductCard({ product, index, onViewDetails, onOrder }: CardProps) {
+  const { t, language } = useLanguage();
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const Illustration = productIllustrations[product.category];
@@ -343,10 +345,14 @@ function ProductCard({ product, index, onViewDetails, onOrder }: CardProps) {
             {/* Name + description */}
             <div className="space-y-1.5">
               <h3 className="text-xl font-black text-[#1E1035] leading-tight">
-                {product.nameVi}
+                {language === "th"
+                  ? (product.category === "keychain" ? "พวงกุญแจอะคริลิก LADA" : product.category === "magnet" ? "แม่เหล็กพิมพ์ภาพติดตู้เย็น" : "อะคริลิกแม่เหล็กเจียระไนขอบเพชร")
+                  : language === "en"
+                  ? product.name
+                  : product.nameVi}
               </h3>
               <p className="text-sm font-medium text-slate-600 leading-relaxed min-h-[44px] line-clamp-2">
-                {product.descriptionVi}
+                {language === "en" ? product.description : product.descriptionVi}
               </p>
             </div>
 
@@ -377,14 +383,14 @@ function ProductCard({ product, index, onViewDetails, onOrder }: CardProps) {
                 onClick={() => onViewDetails?.(product)}
                 className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold border-2 border-pink-300 bg-white/90 text-slate-800 hover:bg-pink-50 hover:text-pink-700 hover:border-pink-400 transition-colors duration-200 cursor-pointer shadow-sm active:scale-95"
               >
-                Xem chi tiết
+                {t("btn_view_detail")}
               </button>
               <button
                 type="button"
                 onClick={() => onOrder?.(product)}
                 className="flex-1 px-4 py-2.5 rounded-xl text-sm font-black text-white bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 hover:brightness-110 shadow-md shadow-pink-400/30 transition-all duration-200 cursor-pointer active:scale-95"
               >
-                Đặt hàng
+                {t("btn_customize_now")}
               </button>
             </div>
           </div>
@@ -404,6 +410,7 @@ interface ProductShowcaseProps {
 }
 
 export default function ProductShowcase({ onViewDetails, onOrder }: ProductShowcaseProps = {}) {
+  const { t } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
@@ -422,12 +429,12 @@ export default function ProductShowcase({ onViewDetails, onOrder }: ProductShowc
           className="text-center mb-16 sm:mb-20"
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-pink-300/80 bg-white/80 px-4 py-1 text-xs font-black uppercase tracking-widest text-pink-700 shadow-sm backdrop-blur-md mb-3">
-            <span>LADA GIFT • Bộ sưu tập cao cấp</span>
+            <span>LADA GIFT • {t("showcase_subtitle")}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1E1035]">
-            3 DÒNG SẢN PHẨM{" "}
+            {t("showcase_title").toUpperCase()}{" "}
             <span className="bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 bg-clip-text text-transparent">
-              MICA CHỦ LỰC
+              LADA GIFT
             </span>
           </h2>
           <div className="mt-4 mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-sky-500" />

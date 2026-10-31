@@ -11,15 +11,17 @@ import {
 const requestHistory = new Map<string, number>();
 
 /**
- * Generate unique order ID: LADA-YYYYMMDD-XXX
+ * Generate unique order ID:
+ * - Vietnam: MC-YYYYMMDD-XXX
+ * - Thailand: TL-YYYYMMDD-XXX
  */
-function generateOrderId(): string {
+function generateOrderId(prefix = "MC"): string {
   const now = new Date();
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const dd = String(now.getDate()).padStart(2, "0");
   const randomSuffix = Math.floor(100 + Math.random() * 900);
-  return `LADA-${yyyy}${mm}${dd}-${randomSuffix}`;
+  return `${prefix}-${yyyy}${mm}${dd}-${randomSuffix}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -41,7 +43,13 @@ export async function POST(req: NextRequest) {
     requestHistory.set(ip, now);
 
     const body = await req.json();
-    const { customer, items } = body;
+    const { customer, items, country } = body;
+
+    // Determine country & prefix: Vietnam -> MC, Thailand -> TL
+    const selectedCountry = (country || customer?.country || "VN").toString().toUpperCase();
+    const isThai = selectedCountry === "TH" || selectedCountry.includes("THAI") || selectedCountry.includes("THÁI");
+    const orderPrefix = isThai ? "TL" : "MC";
+    const countryName = isThai ? "Thái Lan" : "Việt Nam";
 
     // 1. Validate Customer Info
     if (!customer?.customerName || !customer.customerName.trim()) {
@@ -51,14 +59,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!customer?.phone || !isValidVietnamPhone(customer.phone)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Số điện thoại không hợp lệ (cần 10 chữ số của các nhà mạng VN)!",
-        },
-        { status: 400 }
-      );
+    if (isThai) {
+      const cleanPhone = (customer?.phone || "").replace(/[\s\-\(\)\.]/g, "");
+      if (cleanPhone.length < 8 || cleanPhone.length > 15) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Số điện thoại Thái Lan không hợp lệ (cần từ 9 đến 10 chữ số)!",
+          },
+          { status: 400 }
+        );
+      }
+    } else {
+      if (!customer?.phone || !isValidVietnamPhone(customer.phone)) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Số điện thoại không hợp lệ (cần 10 chữ số của các nhà mạng VN)!",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     if (!customer?.address || !customer.address.trim()) {
@@ -103,17 +124,19 @@ export async function POST(req: NextRequest) {
     const { totalItems, totalQuantity, subtotal, shippingFee, totalPrice } =
       calculateCartTotals(verifiedItems);
 
-    const orderId = generateOrderId();
+    const orderId = generateOrderId(orderPrefix);
     const createdAt = new Date().toISOString();
 
     const orderPayload = {
       orderId,
       createdAt,
+      country: countryName,
       customer: {
         customerName: customer.customerName.trim(),
         phone: customer.phone.trim(),
         address: customer.address.trim(),
         note: customer.note?.trim() || "",
+        country: countryName,
       },
       items: verifiedItems,
       totalItems,

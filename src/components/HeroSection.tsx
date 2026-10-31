@@ -14,6 +14,7 @@ import {
   Eye,
 } from "lucide-react";
 import { smoothScrollTo } from "@/lib/smoothScroll";
+import { useLanguage } from "@/lib/i18n";
 
 /* -------------------------------------------------------------------------- */
 /*  Magnetic Button                                                           */
@@ -130,6 +131,7 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {}) {
+  const { t } = useLanguage();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isLoaded, setIsLoaded] = useState(false);
@@ -178,9 +180,7 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
               />
             </div>
             <span className="text-xs font-black tracking-wider text-pink-700 uppercase flex items-center gap-1.5">
-              <span>XƯỞNG MICA QUÀ TẶNG CAO CẤP</span>
-              <span className="hidden sm:inline text-pink-400">•</span>
-              <span className="hidden sm:inline font-extrabold text-purple-700">IN THEO YÊU CẦU</span>
+              <span>{t("hero_badge")}</span>
             </span>
             <span className="flex h-2 w-2 rounded-full bg-pink-500 animate-ping ml-0.5" />
           </motion.div>
@@ -192,17 +192,17 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
             transition={{ duration: 0.7, delay: 0.1 }}
           >
             <h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tight text-[#180D2B] leading-[1.14]">
-              Biến Kỷ Niệm Thành{" "}
+              {t("hero_title_1")}{" "}
               <span className="relative inline-block">
                 <span className="bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 bg-clip-text text-transparent">
-                  Kiệt Tác Pha Lê
+                  {t("hero_title_2")}
                 </span>
                 {/* Floating Bling Star on the word */}
                 <BlingSparkle top="-10px" left="96%" delay={0.2} size={20} />
               </span>
               <br />
               <span className="text-3xl sm:text-4xl lg:text-4xl xl:text-5xl font-extrabold text-slate-800">
-                Móc Khóa & Nam Châm Mica LADA
+                {t("hero_subtitle")}
               </span>
             </h1>
           </motion.div>
@@ -214,7 +214,7 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-4 mb-6 max-w-lg text-sm sm:text-base leading-relaxed text-slate-700 font-semibold"
           >
-            Mica Acrylic đúc nguyên khối siêu trong suốt 99.8%, vát cạnh kim cương CNC bóng loáng. In hình cá nhân hóa theo yêu cầu — sắc nét, bền màu 10 năm.
+            {t("hero_desc")}
           </motion.p>
 
           {/* 4. Action CTA Buttons Group */}
@@ -236,7 +236,7 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
               className="w-full sm:w-auto py-3.5 px-7"
             >
               <Sparkles className="h-4.5 w-4.5 text-white animate-spin-slow" />
-              <span>Tự thiết kế & Xem bản in ngay</span>
+              <span>{t("hero_btn_customize")}</span>
             </MagneticButton>
 
             <MagneticButton
@@ -245,7 +245,7 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
               className="w-full sm:w-auto py-3.5 px-6"
             >
               <Eye className="h-4 w-4 text-pink-600" />
-              <span>Khám phá sản phẩm</span>
+              <span>{t("hero_btn_explore")}</span>
               <ChevronRight className="h-4 w-4 ml-0.5" />
             </MagneticButton>
           </motion.div>

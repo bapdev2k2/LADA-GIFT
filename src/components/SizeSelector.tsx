@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence, useSpring, useTransform } from "framer-motion";
+import { useLanguage } from "@/lib/i18n";
 
 const sizes = [
   { label: "S", dimension: "7.5cm", scale: 0.65, description: "Nhỏ gọn • Tiện lợi" },
@@ -153,6 +154,7 @@ interface SizeSelectorProps {
 }
 
 export default function SizeSelector({ onSelectSize }: SizeSelectorProps = {}) {
+  const { t } = useLanguage();
   const [selectedSize, setSelectedSize] = useState<SizeLabel>("L");
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-80px" });
@@ -190,12 +192,12 @@ export default function SizeSelector({ onSelectSize }: SizeSelectorProps = {}) {
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-pink-300/80 bg-white/80 px-4 py-1 text-xs font-black uppercase tracking-widest text-pink-700 shadow-sm backdrop-blur-md mb-3">
-            <span>LADA GIFT • Tiêu chuẩn kích cỡ</span>
+            <span>LADA GIFT • {t("sizes_subtitle")}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1E1035]">
-            CHỌN KÍCH THƯỚC{" "}
+            {t("sizes_title").toUpperCase()}{" "}
             <span className="bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 bg-clip-text text-transparent">
-              MICA HOÀN HẢO
+              LADA GIFT
             </span>
           </h2>
           <div className="mt-4 mx-auto w-24 h-1 rounded-full bg-gradient-to-r from-pink-500 to-purple-500" />
@@ -338,7 +340,7 @@ export default function SizeSelector({ onSelectSize }: SizeSelectorProps = {}) {
                 onClick={() => onSelectSize(selectedSize)}
                 className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-8 py-3.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-xl shadow-pink-400/35 transition hover:brightness-110 active:scale-95 cursor-pointer"
               >
-                <span>Chọn Size {selectedSize} & Tự thiết kế ngay</span>
+                <span>{t("nav_cta")} (Size {selectedSize})</span>
               </button>
             </div>
           )}

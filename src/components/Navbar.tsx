@@ -4,23 +4,25 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Sparkles, Heart } from "lucide-react";
 import { smoothScrollTo } from "@/lib/smoothScroll";
+import { useLanguage, LANGUAGES } from "@/lib/i18n";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 /* -------------------------------------------------------------------------- */
 /*  Nav link data                                                              */
 /* -------------------------------------------------------------------------- */
 
 interface NavLink {
-  label: string;
+  key: "nav_products" | "nav_showroom" | "nav_sizes" | "nav_process" | "nav_gallery" | "nav_contact";
   href: string;
 }
 
-const navLinks: NavLink[] = [
-  { label: "Sản phẩm", href: "#products" },
-  { label: "Showroom 3D", href: "#showroom" },
-  { label: "Kích thước", href: "#sizes" },
-  { label: "Quy trình in", href: "#process" },
-  { label: "Bộ sưu tập", href: "#gallery" },
-  { label: "Liên hệ", href: "#contact" },
+const navLinksConfig: NavLink[] = [
+  { key: "nav_products", href: "#products" },
+  { key: "nav_showroom", href: "#showroom" },
+  { key: "nav_sizes", href: "#sizes" },
+  { key: "nav_process", href: "#process" },
+  { key: "nav_gallery", href: "#gallery" },
+  { key: "nav_contact", href: "#contact" },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -28,13 +30,14 @@ const navLinks: NavLink[] = [
 /* -------------------------------------------------------------------------- */
 
 function DesktopNavLink({ link }: { link: NavLink }) {
+  const { t } = useLanguage();
   return (
     <button
       type="button"
       onClick={() => smoothScrollTo(link.href)}
       className="group relative cursor-pointer bg-transparent border-none px-2 py-2 text-sm font-bold tracking-wide text-slate-700 transition-colors duration-300 hover:text-pink-600"
     >
-      {link.label}
+      {t(link.key)}
       {/* Hover underline animation */}
       <span className="absolute bottom-0 left-0 h-[2.5px] w-0 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 transition-all duration-300 group-hover:w-full" />
     </button>
@@ -74,6 +77,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onOpenCustomizer }: NavbarProps = {}) {
+  const { t, language, setLanguage } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -138,20 +142,23 @@ export default function Navbar({ onOpenCustomizer }: NavbarProps = {}) {
                 LADA GIFT
               </span>
               <span className="text-[10px] font-bold tracking-widest uppercase text-pink-600/90 mt-0.5">
-                Gift From The Heart
+                {t("tagline")}
               </span>
             </div>
           </button>
 
           {/* ---- Desktop links ---- */}
           <div className="hidden items-center gap-6 md:flex bg-white/50 px-5 py-1.5 rounded-full border border-white/80 shadow-sm backdrop-blur-md">
-            {navLinks.map((link) => (
+            {navLinksConfig.map((link) => (
               <DesktopNavLink key={link.href} link={link} />
             ))}
           </div>
 
-          {/* ---- Desktop CTA button ---- */}
-          <div className="hidden md:block">
+          {/* ---- Desktop CTA button & Language Switcher ---- */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             <button
               type="button"
               onClick={() => {
@@ -167,20 +174,24 @@ export default function Navbar({ onOpenCustomizer }: NavbarProps = {}) {
               <span className="pointer-events-none absolute inset-0 -translate-x-full animate-[shimmer_2.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
               <span className="relative z-10 flex items-center gap-1.5">
                 <Sparkles className="h-4 w-4" />
-                <span>Tự thiết kế ngay</span>
+                <span>{t("nav_cta")}</span>
               </span>
             </button>
           </div>
 
-          {/* ---- Mobile hamburger ---- */}
-          <button
-            type="button"
-            onClick={() => setMobileOpen(true)}
-            className="flex cursor-pointer items-center justify-center rounded-xl border border-pink-200/80 bg-white/80 p-2.5 text-[#1E1035] shadow-sm backdrop-blur-sm transition-colors hover:bg-white md:hidden"
-            aria-label="Open menu"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
+          {/* ---- Mobile Language & Hamburger ---- */}
+          <div className="flex items-center gap-2 md:hidden">
+            <LanguageSwitcher />
+
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="flex cursor-pointer items-center justify-center rounded-xl border border-pink-200/80 bg-white/80 p-2.5 text-[#1E1035] shadow-sm backdrop-blur-sm transition-colors hover:bg-white"
+              aria-label="Open menu"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -219,7 +230,7 @@ export default function Navbar({ onOpenCustomizer }: NavbarProps = {}) {
                       LADA GIFT
                     </span>
                     <span className="text-[10px] font-bold text-pink-600 uppercase tracking-wider">
-                      Gift From The Heart
+                      {t("tagline")}
                     </span>
                   </div>
                 </div>
@@ -234,9 +245,33 @@ export default function Navbar({ onOpenCustomizer }: NavbarProps = {}) {
                 </button>
               </div>
 
+              {/* Language Selector in drawer */}
+              <div className="px-6 py-3 border-b border-pink-100 bg-pink-50/20">
+                <div className="text-[11px] font-black uppercase text-slate-500 mb-2">
+                  Ngôn ngữ / Language / ภาษา:
+                </div>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {LANGUAGES.map((opt) => (
+                    <button
+                      key={opt.code}
+                      type="button"
+                      onClick={() => setLanguage(opt.code)}
+                      className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-xs font-bold transition border cursor-pointer ${
+                        language === opt.code
+                          ? "bg-pink-600 text-white border-pink-600 shadow-sm"
+                          : "bg-white text-slate-700 border-slate-200 hover:border-pink-300"
+                      }`}
+                    >
+                      <span>{opt.flag}</span>
+                      <span className="uppercase text-[11px]">{opt.code}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Nav links */}
-              <div className="flex flex-1 flex-col gap-1 px-6 py-6 overflow-y-auto">
-                {navLinks.map((link, i) => (
+              <div className="flex flex-1 flex-col gap-1 px-6 py-4 overflow-y-auto">
+                {navLinksConfig.map((link, i) => (
                   <motion.button
                     key={link.href}
                     custom={i}
@@ -247,7 +282,7 @@ export default function Navbar({ onOpenCustomizer }: NavbarProps = {}) {
                     onClick={() => handleMobileLinkClick(link.href)}
                     className="cursor-pointer rounded-xl bg-transparent border-none px-4 py-3 text-left text-base font-bold text-slate-800 transition-colors duration-200 hover:bg-pink-50 hover:text-pink-600"
                   >
-                    {link.label}
+                    {t(link.key)}
                   </motion.button>
                 ))}
               </div>
@@ -255,7 +290,7 @@ export default function Navbar({ onOpenCustomizer }: NavbarProps = {}) {
               {/* Mobile CTA */}
               <div className="px-6 pb-8 border-t border-pink-100 pt-4 bg-pink-50/30">
                 <motion.button
-                  custom={navLinks.length}
+                  custom={navLinksConfig.length}
                   variants={mobileItemVariants}
                   initial="closed"
                   animate="open"
@@ -271,7 +306,7 @@ export default function Navbar({ onOpenCustomizer }: NavbarProps = {}) {
                   className="w-full cursor-pointer rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-6 py-3.5 text-center text-sm font-extrabold text-white shadow-lg shadow-pink-400/30 flex items-center justify-center gap-2"
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span>Tự thiết kế ngay</span>
+                  <span>{t("nav_cta")}</span>
                 </motion.button>
               </div>
             </motion.div>

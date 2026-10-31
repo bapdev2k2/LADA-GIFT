@@ -39,6 +39,15 @@ import {
   PRODUCT_CONFIGS,
   SIZE_CONFIGS,
 } from "@/lib/orderPricing";
+import { useLanguage } from "@/lib/i18n";
+
+function isValidThaiPhone(phone: string): boolean {
+  const cleaned = phone.replace(/[\s\-\(\)\.]/g, "");
+  return (
+    /^(0[689]\d{8}|0[2-7]\d{7,8}|\+66\d{8,9})$/.test(cleaned) ||
+    (cleaned.length >= 9 && cleaned.length <= 11 && /^\d+$/.test(cleaned))
+  );
+}
 
 interface DesignCustomizerModalProps {
   isOpen: boolean;
@@ -113,6 +122,8 @@ export default function DesignCustomizerModal({
   // Editing existing item ID (if editing an existing item from cart)
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
+  const { t, language } = useLanguage();
+
   // Multi-Product Cart Items list
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
@@ -120,10 +131,20 @@ export default function DesignCustomizerModal({
   const [activePreviewIndex, setActivePreviewIndex] = useState<number>(0);
 
   // Customer Checkout Form
+  const [customerCountry, setCustomerCountry] = useState<"VN" | "TH">("VN");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerNote, setCustomerNote] = useState("");
+
+  // Sync country with language
+  useEffect(() => {
+    if (language === "th") {
+      setCustomerCountry("TH");
+    } else {
+      setCustomerCountry("VN");
+    }
+  }, [language]);
 
   // Submitting & success state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -340,18 +361,49 @@ export default function DesignCustomizerModal({
       return;
     }
 
-    if (!isValidVietnamPhone(customerPhone)) {
-      alert("Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 số của các nhà mạng Việt Nam (03, 05, 07, 08, 09...).");
-      return;
+    if (customerCountry === "VN") {
+      if (!isValidVietnamPhone(customerPhone)) {
+        alert(
+          language === "th"
+            ? "เบอร์โทรศัพท์เวียดนามไม่ถูกต้อง (กรุณากรอก 10 หลัก)!"
+            : language === "en"
+            ? "Invalid Vietnam phone number (requires 10 digits starting with 03, 05, 07, 08, 09)!"
+            : "Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 số của các nhà mạng Việt Nam (03, 05, 07, 08, 09...)."
+        );
+        return;
+      }
+    } else {
+      if (!isValidThaiPhone(customerPhone)) {
+        alert(
+          language === "th"
+            ? "เบอร์โทรศัพท์ไทยไม่ถูกต้อง (กรุณากรอกเบอร์มือถือ 9-10 หลัก เช่น 08x, 09x, 06x)!"
+            : language === "en"
+            ? "Invalid Thailand phone number (requires 9-10 digits starting with 08, 09, 06...)!"
+            : "Số điện thoại Thái Lan không hợp lệ! Vui lòng nhập số điện thoại 9-10 chữ số (Ví dụ: 08x, 09x, 06x...)."
+        );
+        return;
+      }
     }
 
     if (!customerAddress.trim()) {
-      alert("Vui lòng nhập địa chỉ nhận hàng để LADA GIFT gửi sản phẩm tận nơi!");
+      alert(
+        language === "th"
+          ? "กรุณากรอกที่อยู่จัดส่ง!"
+          : language === "en"
+          ? "Please enter your delivery address!"
+          : "Vui lòng nhập địa chỉ nhận hàng để LADA GIFT gửi sản phẩm tận nơi!"
+      );
       return;
     }
 
     if (cartItems.length === 0) {
-      alert("Giỏ hàng đang trống!");
+      alert(
+        language === "th"
+          ? "ตะกร้าสินค้าว่างอยู่!"
+          : language === "en"
+          ? "Your cart is empty!"
+          : "Giỏ hàng đang trống!"
+      );
       return;
     }
 
@@ -372,11 +424,13 @@ export default function DesignCustomizerModal({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          country: customerCountry,
           customer: {
             customerName: customerName.trim(),
             phone: customerPhone.trim(),
             address: customerAddress.trim(),
             note: customerNote.trim(),
+            country: customerCountry === "TH" ? "Thái Lan" : "Việt Nam",
           },
           items: cartItems,
         }),
@@ -462,13 +516,13 @@ export default function DesignCustomizerModal({
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-black text-[#1E1035] flex items-center gap-2">
-                  <span>LADA GIFT • 3D Design Studio</span>
+                  <span>{t("modal_title")}</span>
                   <span className="hidden sm:inline-block rounded-full bg-pink-100 border border-pink-300 px-2.5 py-0.5 text-[10px] font-black uppercase text-pink-700">
-                    Trực quan hóa thời gian thực
+                    {t("modal_badge")}
                   </span>
                 </h3>
                 <p className="text-[11px] font-semibold text-slate-500">
-                  Đặt nhiều ảnh & sản phẩm khác nhau trong cùng một đơn hàng tiện lợi
+                  {t("modal_sub")}
                 </p>
               </div>
             </div>
@@ -507,20 +561,17 @@ export default function DesignCustomizerModal({
               </motion.div>
 
               <h4 className="mt-5 text-2xl sm:text-3xl font-black text-[#180D2B]">
-                ĐẶT HÀNG LADA GIFT THÀNH CÔNG!
+                {t("success_title")}
               </h4>
               <p className="mx-auto mt-2 max-w-lg text-sm font-semibold text-slate-600 leading-relaxed">
-                Cảm ơn bạn <span className="font-extrabold text-pink-600">{customerName}</span>!
-                Đội ngũ thiết kế của chúng tôi đã nhận được ảnh và yêu cầu in. Kỹ thuật viên sẽ liên hệ
-                qua số Zalo <span className="font-extrabold text-purple-700">{customerPhone}</span> trong
-                vòng 15 phút để gửi bản demo xem trước miễn phí.
+                {t("success_desc")}
               </p>
 
               {/* Order Info Summary Card */}
               <div className="mx-auto mt-6 max-w-xl rounded-2xl border-2 border-pink-200/90 bg-white/90 p-5 text-left shadow-lg shadow-pink-100/50">
                 <div className="flex items-center justify-between border-b border-pink-100 pb-3">
                   <div>
-                    <span className="text-xs font-bold text-slate-500">MÃ ĐƠN HÀNG:</span>
+                    <span className="text-xs font-bold text-slate-500 uppercase">{t("success_order_id")}:</span>
                     <div className="text-base font-black text-pink-600 font-mono tracking-wider">
                       {orderSuccessData.orderId}
                     </div>
@@ -533,12 +584,12 @@ export default function DesignCustomizerModal({
                     {copiedOrderId ? (
                       <>
                         <CheckCheck className="h-3.5 w-3.5 text-emerald-600" />
-                        <span className="text-emerald-700">Đã sao chép</span>
+                        <span className="text-emerald-700">{t("success_copied")}</span>
                       </>
                     ) : (
                       <>
                         <Copy className="h-3.5 w-3.5" />
-                        <span>Sao chép mã</span>
+                        <span>{t("success_copy")}</span>
                       </>
                     )}
                   </button>
@@ -571,7 +622,7 @@ export default function DesignCustomizerModal({
 
                 {/* Total Payment */}
                 <div className="flex items-center justify-between pt-3 border-t border-pink-100">
-                  <span className="text-xs font-black text-slate-700 uppercase">Tổng thanh toán:</span>
+                  <span className="text-xs font-black text-slate-700 uppercase">{t("success_total")}:</span>
                   <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 font-mono">
                     {formatPrice(orderSuccessData.totalPrice)}
                   </span>
@@ -588,7 +639,7 @@ export default function DesignCustomizerModal({
                   }}
                   className="rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-8 py-3 text-sm font-black text-white shadow-lg shadow-pink-400/30 hover:brightness-110 transition active:scale-95 cursor-pointer"
                 >
-                  Hoàn tất & Tiếp tục mua sắm
+                  {t("success_btn_new")}
                 </button>
               </div>
             </div>
@@ -728,8 +779,8 @@ export default function DesignCustomizerModal({
                         <Sparkles className="h-3.5 w-3.5 text-pink-500" />
                         <span>
                           {editingItemId
-                            ? "Đang chỉnh sửa sản phẩm trong giỏ"
-                            : "Cấu hình & Tải ảnh sản phẩm"}
+                            ? t("cfg_edit_title")
+                            : t("cfg_title")}
                         </span>
                       </h4>
                       {editingItemId && (
@@ -746,28 +797,28 @@ export default function DesignCustomizerModal({
                     {/* Choose Product Type */}
                     <div>
                       <label className="text-[11px] font-black uppercase text-slate-600 mb-1.5 block">
-                        1. Loại sản phẩm:
+                        {t("cfg_step_1")}
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        {productTypesList.map((t) => {
-                          const isSelected = currentType === t.id;
+                        {productTypesList.map((tItem) => {
+                          const isSelected = currentType === tItem.id;
                           return (
                             <button
-                              key={t.id}
+                              key={tItem.id}
                               type="button"
-                              onClick={() => setCurrentType(t.id)}
+                              onClick={() => setCurrentType(tItem.id)}
                               className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition duration-200 cursor-pointer ${
                                 isSelected
                                   ? "border-2 border-pink-500 bg-pink-50/90 text-[#1E1035] shadow-md shadow-pink-200/40"
                                   : "border-slate-200 bg-white/90 text-slate-600 hover:border-pink-300 hover:bg-white"
                               }`}
                             >
-                              <span className="text-xs font-black text-[#1E1035]">{t.name}</span>
+                              <span className="text-xs font-black text-[#1E1035]">{tItem.name}</span>
                               <span className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
-                                {t.tagline}
+                                {tItem.tagline}
                               </span>
                               <span className="mt-1 text-[11px] font-black text-pink-600">
-                                từ {formatPrice(t.basePrice)}
+                                {t("from_price")} {formatPrice(tItem.basePrice)}
                               </span>
                             </button>
                           );
@@ -778,7 +829,7 @@ export default function DesignCustomizerModal({
                     {/* Choose Size */}
                     <div>
                       <label className="text-[11px] font-black uppercase text-slate-600 mb-1.5 block">
-                        2. Kích thước mica:
+                        {t("cfg_step_2")}
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         {sizeOptionsList.map((s) => {
@@ -808,14 +859,14 @@ export default function DesignCustomizerModal({
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-[11px] font-black uppercase text-slate-600">
-                          3. Ảnh in cho sản phẩm này:
+                          {t("cfg_step_3")}
                         </label>
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
                           className="text-xs font-bold text-pink-600 hover:text-pink-700 flex items-center gap-1 cursor-pointer"
                         >
-                          <Upload className="h-3 w-3" /> Tải ảnh riêng từ máy
+                          <Upload className="h-3 w-3" /> {t("cfg_upload_btn")}
                         </button>
                       </div>
 
@@ -860,7 +911,7 @@ export default function DesignCustomizerModal({
                     {/* Quantity & Add to Cart button */}
                     <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-600">Số lượng:</span>
+                        <span className="text-xs font-bold text-slate-600">{t("cfg_qty")}</span>
                         <div className="flex items-center rounded-xl border border-pink-200 bg-white shadow-sm">
                           <button
                             type="button"
@@ -893,8 +944,8 @@ export default function DesignCustomizerModal({
                         <Plus className="h-3.5 w-3.5 stroke-[3]" />
                         <span>
                           {editingItemId
-                            ? "Lưu cập nhật sản phẩm này"
-                            : "Thêm sản phẩm này vào giỏ"}
+                            ? t("cfg_update_btn")
+                            : t("cfg_add_btn")}
                         </span>
                       </button>
                     </div>
@@ -907,10 +958,10 @@ export default function DesignCustomizerModal({
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-black uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
                         <ShoppingBag className="h-3.5 w-3.5" />
-                        <span>Giỏ hàng của bạn ({cartItems.length} sản phẩm)</span>
+                        <span>{t("cart_heading")} ({cartItems.length} {t("form_summary_lines")})</span>
                       </label>
                       <span className="text-[11px] font-bold text-pink-600">
-                        Freeship toàn quốc từ 2c
+                        {t("cart_freeship")}
                       </span>
                     </div>
 
@@ -919,9 +970,9 @@ export default function DesignCustomizerModal({
                         <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-pink-100 text-pink-500 mb-2">
                           <ShoppingBag className="h-5 w-5" />
                         </div>
-                        <p className="text-xs font-bold text-[#1E1035]">Giỏ hàng của bạn đang trống</p>
+                        <p className="text-xs font-bold text-[#1E1035]">{t("cart_empty_title")}</p>
                         <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
-                          Hãy chọn loại sản phẩm, tải ảnh và nhấn <span className="font-bold text-pink-600">"+ Thêm sản phẩm này vào giỏ"</span> ở trên để lên đơn nhé!
+                          {t("cart_empty_desc")}
                         </p>
                       </div>
                     ) : (
@@ -1030,9 +1081,48 @@ export default function DesignCustomizerModal({
                   {/* 3. CUSTOMER CHECKOUT INFORMATION FORM                     */}
                   {/* ========================================================= */}
                   <form onSubmit={handleSubmitOrder} className="space-y-3.5 pt-3 border-t border-pink-200/80">
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-700 block">
-                      Thông tin nhận hàng (Xác nhận qua Zalo):
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-black uppercase tracking-wider text-slate-700 block">
+                        {t("form_heading")}
+                      </label>
+                      <span className="text-[10px] font-bold text-pink-600 font-mono">
+                        {customerCountry === "VN" ? "Mã: MC-XXXX" : "Mã: TL-XXXX"}
+                      </span>
+                    </div>
+
+                    {/* Choose Delivery Country: Vietnam vs Thailand */}
+                    <div>
+                      <div className="text-[11px] font-black uppercase text-slate-600 mb-1.5 flex items-center justify-between">
+                        <span>{t("form_country")}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setCustomerCountry("VN")}
+                          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-black transition cursor-pointer ${
+                            customerCountry === "VN"
+                              ? "border-2 border-pink-500 bg-pink-50/90 text-[#1E1035] shadow-sm shadow-pink-200/50"
+                              : "border-slate-200 bg-white/90 text-slate-600 hover:border-pink-300"
+                          }`}
+                        >
+                          <span className="text-base">🇻🇳</span>
+                          <span>{t("form_country_vn")}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setCustomerCountry("TH")}
+                          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-black transition cursor-pointer ${
+                            customerCountry === "TH"
+                              ? "border-2 border-purple-500 bg-purple-50/90 text-[#1E1035] shadow-sm shadow-purple-200/50"
+                              : "border-slate-200 bg-white/90 text-slate-600 hover:border-purple-300"
+                          }`}
+                        >
+                          <span className="text-base">🇹🇭</span>
+                          <span>{t("form_country_th")}</span>
+                        </button>
+                      </div>
+                    </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
@@ -1041,7 +1131,7 @@ export default function DesignCustomizerModal({
                           required
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
-                          placeholder="Họ và tên của bạn *"
+                          placeholder={t("form_name")}
                           className="w-full rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2 text-xs font-bold text-[#1E1035] placeholder-slate-400 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 focus:outline-none shadow-xs"
                         />
                       </div>
@@ -1051,7 +1141,7 @@ export default function DesignCustomizerModal({
                           required
                           value={customerPhone}
                           onChange={(e) => setCustomerPhone(e.target.value)}
-                          placeholder="Số điện thoại Zalo nhận bản in demo *"
+                          placeholder={customerCountry === "TH" ? t("form_phone_th") : t("form_phone_vn")}
                           className="w-full rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2 text-xs font-bold text-[#1E1035] placeholder-slate-400 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 focus:outline-none shadow-xs"
                         />
                       </div>
@@ -1063,7 +1153,7 @@ export default function DesignCustomizerModal({
                         required
                         value={customerAddress}
                         onChange={(e) => setCustomerAddress(e.target.value)}
-                        placeholder="Địa chỉ nhận hàng (Ví dụ: 123 Cầu Giấy, Hà Nội) *"
+                        placeholder={t("form_address")}
                         className="w-full rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2 text-xs font-bold text-[#1E1035] placeholder-slate-400 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 focus:outline-none shadow-xs"
                       />
                     </div>
@@ -1073,7 +1163,7 @@ export default function DesignCustomizerModal({
                         type="text"
                         value={customerNote}
                         onChange={(e) => setCustomerNote(e.target.value)}
-                        placeholder="Ghi chú đơn hàng (Ví dụ: Cắt theo form viền ảnh, in thêm chữ...)"
+                        placeholder={t("form_note")}
                         className="w-full rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2 text-xs font-bold text-[#1E1035] placeholder-slate-400 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 focus:outline-none shadow-xs"
                       />
                     </div>
@@ -1082,8 +1172,8 @@ export default function DesignCustomizerModal({
                     <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-pink-200/80">
                       <div>
                         <div className="text-[11px] font-bold text-slate-500">
-                          Tổng {totals.totalItems} dòng ({totals.totalQuantity} chiếc) •{" "}
-                          <span className="text-emerald-600 font-black">Miễn phí ship</span>:
+                          {t("form_summary_items")} {totals.totalItems} {t("form_summary_lines")} ({totals.totalQuantity} {t("form_summary_pcs")}) •{" "}
+                          <span className="text-emerald-600 font-black">{t("form_freeship_badge")}</span>:
                         </div>
                         <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 font-mono">
                           {formatPrice(totals.totalPrice)}
@@ -1098,17 +1188,17 @@ export default function DesignCustomizerModal({
                         {isSubmitting ? (
                           <>
                             <RotateCw className="h-4 w-4 animate-spin text-white" />
-                            <span>Đang lưu đơn hàng...</span>
+                            <span>{t("form_submitting")}</span>
                           </>
                         ) : cartItems.length === 0 ? (
                           <>
                             <ShoppingBag className="h-4 w-4" />
-                            <span>Vui lòng thêm sản phẩm vào giỏ</span>
+                            <span>{t("form_submit_empty")}</span>
                           </>
                         ) : (
                           <>
                             <ShoppingBag className="h-4 w-4" />
-                            <span>Đặt in {totals.totalQuantity} sản phẩm này</span>
+                            <span>{t("form_submit_btn", { qty: totals.totalQuantity })}</span>
                           </>
                         )}
                       </button>
