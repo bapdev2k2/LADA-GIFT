@@ -264,44 +264,44 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
             initial={{ opacity: 0, y: 20 }}
             animate={isLoaded ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.7, delay: 0.45 }}
-            className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-2xl text-left"
+            className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5 w-full max-w-xl text-left"
           >
             {[
               {
                 icon: Zap,
-                title: "Duyệt mẫu 15P",
-                desc: "Gửi demo xem trước",
+                title: "Duyệt mẫu trong 15P",
+                desc: "Gửi demo bản in xem trước miễn phí",
               },
               {
                 icon: ShieldCheck,
-                title: "Mica đúc 100%",
-                desc: "Không ố vàng, chống vỡ",
+                title: "Mica đúc Grade A 100%",
+                desc: "Trong suốt 99.8%, không ố vàng 10 năm",
               },
               {
                 icon: Gift,
-                title: "Hộp quà chỉn chu",
-                desc: "Tặng kèm thiệp thiết kế",
+                title: "Hộp quà & Thiệp chỉn chu",
+                desc: "Đóng gói sang trọng sẵn sàng tặng",
               },
               {
                 icon: CheckCircle2,
-                title: "Bảo hành 1-1",
-                desc: "Đổi mới nếu không sắc nét",
+                title: "Bảo hành 1 đổi 1",
+                desc: "Đổi mới lập tức nếu bản in không sắc nét",
               },
             ].map((badge) => {
               const IconComp = badge.icon;
               return (
                 <div
                   key={badge.title}
-                  className="flex items-center gap-2.5 rounded-2xl bg-white/80 p-2.5 sm:p-3 border border-pink-200/90 shadow-sm backdrop-blur-md"
+                  className="flex items-center gap-3 rounded-2xl bg-white/85 p-3 sm:p-3.5 border border-pink-200/90 shadow-sm backdrop-blur-md transition-all duration-200 hover:bg-white hover:border-pink-300 hover:shadow-md"
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-pink-100 text-pink-600 flex-shrink-0">
-                    <IconComp className="h-4 w-4" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-100 text-pink-600 flex-shrink-0 shadow-inner">
+                    <IconComp className="h-5 w-5" />
                   </div>
-                  <div>
-                    <p className="text-xs font-black text-[#1E1035] leading-tight">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-black text-[#1E1035] leading-snug">
                       {badge.title}
                     </p>
-                    <p className="text-[10px] font-bold text-slate-500 truncate">
+                    <p className="text-xs font-semibold text-slate-600 mt-0.5 whitespace-normal leading-tight">
                       {badge.desc}
                     </p>
                   </div>
