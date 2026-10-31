@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -10,20 +10,35 @@ import {
   RotateCw,
   ShoppingBag,
   Layers,
-  Maximize2,
-  ShieldAlert,
-  HelpCircle,
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+  Eye,
+  Copy,
+  CheckCheck,
+  Package,
+  Truck,
+  Heart,
+  ChevronRight,
+  ShieldCheck,
 } from "lucide-react";
 import { fireHologramConfetti } from "@/lib/confetti";
 import { formatPrice } from "@/data/products";
-
-export interface CustomDesignData {
-  productType: "keychain" | "magnet" | "mica-magnet";
-  size: "S" | "L" | "XL";
-  imageUrl: string;
-  imageName: string;
-  quantity: number;
-}
+import {
+  CartItem,
+  saveCartToStorage,
+  loadCartFromStorage,
+  clearCartStorage,
+  saveCustomerDraft,
+  loadCustomerDraft,
+} from "@/lib/cartStorage";
+import {
+  calculateCartTotals,
+  calculateItemPrice,
+  isValidVietnamPhone,
+  PRODUCT_CONFIGS,
+  SIZE_CONFIGS,
+} from "@/lib/orderPricing";
 
 interface DesignCustomizerModalProps {
   isOpen: boolean;
@@ -52,11 +67,11 @@ const samplePresets = [
   },
 ];
 
-const productTypes = [
+const productTypesList = [
   {
     id: "keychain" as const,
     name: "Móc khóa mica",
-    tagline: "Có khoen kim loại treo chìa khóa",
+    tagline: "Khoen kim loại treo chìa khóa",
     basePrice: 35000,
   },
   {
@@ -68,15 +83,15 @@ const productTypes = [
   {
     id: "mica-magnet" as const,
     name: "Mica nam châm",
-    tagline: "Mặt mica bóng vát cạnh kim cương + nam châm",
+    tagline: "Vát CNC kim cương + nam châm",
     basePrice: 45000,
   },
 ];
 
-const sizeOptions = [
-  { id: "S" as const, label: "Size S (7.5 cm)", scale: 0.8, priceOffset: 0 },
-  { id: "L" as const, label: "Size L (10 cm)", scale: 1.0, priceOffset: 10000 },
-  { id: "XL" as const, label: "Size XL (15 cm)", scale: 1.25, priceOffset: 30000 },
+const sizeOptionsList = [
+  { id: "S" as const, label: "Size S (7.5 cm)", dimension: "7.5 cm", priceOffset: 0 },
+  { id: "L" as const, label: "Size L (10 cm)", dimension: "10 cm", priceOffset: 10000 },
+  { id: "XL" as const, label: "Size XL (15 cm)", dimension: "15 cm", priceOffset: 30000 },
 ];
 
 export default function DesignCustomizerModal({
@@ -86,40 +101,109 @@ export default function DesignCustomizerModal({
   initialSize = "L",
   onAddToCart,
 }: DesignCustomizerModalProps) {
-  const [productType, setProductType] = useState<"keychain" | "magnet" | "mica-magnet">(
+  // Current active editor configuration
+  const [currentType, setCurrentType] = useState<"keychain" | "magnet" | "mica-magnet">(
     initialProductType
   );
-  const [size, setSize] = useState<"S" | "L" | "XL">(initialSize);
-  const [customImage, setCustomImage] = useState<string>(samplePresets[0].url);
-  const [quantity, setQuantity] = useState(1);
-  const [mouseRot, setMouseRot] = useState({ x: 0, y: 0 });
-  const [autoRotate, setAutoRotate] = useState(true);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [currentSize, setCurrentSize] = useState<"S" | "L" | "XL">(initialSize);
+  const [currentImage, setCurrentImage] = useState<string>(samplePresets[0].url);
+  const [currentImageName, setCurrentImageName] = useState<string>("lada-gift-logo.jpg");
+  const [currentQty, setCurrentQty] = useState(1);
+
+  // Editing existing item ID (if editing an existing item from cart)
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+
+  // Multi-Product Cart Items list
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  // Which item is actively displayed in the 3D studio on the left
+  const [activePreviewIndex, setActivePreviewIndex] = useState<number>(0);
+
+  // Customer Checkout Form
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
+  const [customerNote, setCustomerNote] = useState("");
 
+  // Submitting & success state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderSuccessData, setOrderSuccessData] = useState<{
+    orderId: string;
+    totalPrice: number;
+    items: CartItem[];
+  } | null>(null);
+  const [copiedOrderId, setCopiedOrderId] = useState(false);
+
+  // 3D Motion & Auto Rotate State
+  const [mouseRot, setMouseRot] = useState({ x: 0, y: 0 });
+  const [autoRotate, setAutoRotate] = useState(true);
+
+  // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceItemFileInputRef = useRef<HTMLInputElement>(null);
+  const replacingItemIdRef = useRef<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Sync initial props
+  // Initialize and load saved cart from storage on mount
   useEffect(() => {
-    if (initialProductType) setProductType(initialProductType);
-  }, [initialProductType]);
+    const saved = loadCartFromStorage();
+    if (saved && saved.length > 0) {
+      setCartItems(saved);
+    } else {
+      // Default initial item
+      const initialItem: CartItem = {
+        id: `item-${Date.now()}-1`,
+        productType: initialProductType,
+        productName: PRODUCT_CONFIGS[initialProductType]?.name || "Móc khóa mica",
+        size: initialSize,
+        sizeValue: SIZE_CONFIGS[initialSize]?.dimension || "10 cm",
+        quantity: 1,
+        imagePreview: samplePresets[0].url,
+        imageName: "lada-gift-logo.jpg",
+        unitPrice: calculateItemPrice(initialProductType, initialSize, 1).unitPrice,
+        subtotal: calculateItemPrice(initialProductType, initialSize, 1).subtotal,
+      };
+      setCartItems([initialItem]);
+    }
 
+    const savedCustomer = loadCustomerDraft();
+    if (savedCustomer) {
+      if (savedCustomer.customerName) setCustomerName(savedCustomer.customerName);
+      if (savedCustomer.phone) setCustomerPhone(savedCustomer.phone);
+      if (savedCustomer.address) setCustomerAddress(savedCustomer.address);
+      if (savedCustomer.note) setCustomerNote(savedCustomer.note);
+    }
+  }, [initialProductType, initialSize]);
+
+  // Synchronize cart changes to LocalStorage
   useEffect(() => {
-    if (initialSize) setSize(initialSize);
-  }, [initialSize]);
+    if (cartItems.length > 0) {
+      saveCartToStorage(cartItems);
+    }
+  }, [cartItems]);
 
-  // Handle 3D preview mouse movement
+  // Handle incoming props changes
+  useEffect(() => {
+    if (initialProductType) setCurrentType(initialProductType);
+    if (initialSize) setCurrentSize(initialSize);
+  }, [initialProductType, initialSize]);
+
+  // 3D Preview calculations based on active item
+  const activeItem: CartItem | undefined =
+    cartItems[activePreviewIndex] || cartItems[0];
+  const previewType = activeItem ? activeItem.productType : currentType;
+  const previewSize = activeItem ? activeItem.size : currentSize;
+  const previewImage = activeItem ? activeItem.imagePreview : currentImage;
+
+  // Mouse tilt handlers for 3D stage
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!previewRef.current) return;
     const rect = previewRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
     setMouseRot({
-      x: -y * 30, // tilt X
-      y: x * 35,  // tilt Y
+      x: -y * 28,
+      y: x * 32,
     });
     setAutoRotate(false);
   }, []);
@@ -129,184 +213,422 @@ export default function DesignCustomizerModal({
     setAutoRotate(true);
   }, []);
 
-  // Handle image upload
+  // Handle file upload for editor
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file size (max 20MB)
+      if (file.size > 20 * 1024 * 1024) {
+        alert("Dung lượng ảnh quá lớn (vui lòng chọn ảnh dưới 20MB)!");
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (loadEvent) => {
         if (loadEvent.target?.result) {
-          setCustomImage(loadEvent.target.result as string);
+          const resultStr = loadEvent.target.result as string;
+          setCurrentImage(resultStr);
+          setCurrentImageName(file.name);
         }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Price calculation
-  const currentBase = productTypes.find((p) => p.id === productType)?.basePrice || 35000;
-  const currentOffset = sizeOptions.find((s) => s.id === size)?.priceOffset || 0;
-  const unitPrice = currentBase + currentOffset;
-  const totalPrice = unitPrice * quantity;
+  // Handle replacing image for a specific existing item in cart
+  const handleReplaceItemFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const targetItemId = replacingItemIdRef.current;
+    if (file && targetItemId) {
+      const reader = new FileReader();
+      reader.onload = (loadEvent) => {
+        if (loadEvent.target?.result) {
+          const resultStr = loadEvent.target.result as string;
+          setCartItems((prev) =>
+            prev.map((it) =>
+              it.id === targetItemId
+                ? {
+                    ...it,
+                    imagePreview: resultStr,
+                    imageName: file.name,
+                  }
+                : it
+            )
+          );
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-  // Handle submit order
-  const handleCompleteOrder = (e: React.FormEvent) => {
+  // Add current editor item to cart (or update if editing)
+  const handleAddOrUpdateItem = () => {
+    const { unitPrice, subtotal } = calculateItemPrice(
+      currentType,
+      currentSize,
+      currentQty
+    );
+    const prodName = PRODUCT_CONFIGS[currentType]?.name || "Móc khóa mica";
+    const sizeDim = SIZE_CONFIGS[currentSize]?.dimension || "10 cm";
+
+    if (editingItemId) {
+      // Update existing item
+      setCartItems((prev) =>
+        prev.map((it) =>
+          it.id === editingItemId
+            ? {
+                ...it,
+                productType: currentType,
+                productName: prodName,
+                size: currentSize,
+                sizeValue: sizeDim,
+                quantity: currentQty,
+                imagePreview: currentImage,
+                imageName: currentImageName,
+                unitPrice,
+                subtotal,
+              }
+            : it
+        )
+      );
+      setEditingItemId(null);
+    } else {
+      // Create new item
+      const newItem: CartItem = {
+        id: `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        productType: currentType,
+        productName: prodName,
+        size: currentSize,
+        sizeValue: sizeDim,
+        quantity: currentQty,
+        imagePreview: currentImage,
+        imageName: currentImageName,
+        unitPrice,
+        subtotal,
+      };
+      setCartItems((prev) => [...prev, newItem]);
+      setActivePreviewIndex(cartItems.length); // point preview to new item
+    }
+
+    // Reset current quantity to 1 for the next item
+    setCurrentQty(1);
+  };
+
+  // Modify quantity of a cart item
+  const handleUpdateItemQty = (id: string, delta: number) => {
+    setCartItems((prev) =>
+      prev.map((it) => {
+        if (it.id === id) {
+          const newQty = Math.max(1, it.quantity + delta);
+          return {
+            ...it,
+            quantity: newQty,
+            subtotal: it.unitPrice * newQty,
+          };
+        }
+        return it;
+      })
+    );
+  };
+
+  // Delete an item from cart
+  const handleDeleteItem = (id: string) => {
+    if (cartItems.length <= 1) {
+      alert("Đơn hàng cần có ít nhất 1 sản phẩm. Bạn có thể thay đổi cấu hình hoặc đổi ảnh của sản phẩm này!");
+      return;
+    }
+    setCartItems((prev) => prev.filter((it) => it.id !== id));
+    setActivePreviewIndex(0);
+  };
+
+  // Load an item back into editor for updating
+  const handleEditItem = (item: CartItem) => {
+    setEditingItemId(item.id);
+    setCurrentType(item.productType);
+    setCurrentSize(item.size);
+    setCurrentImage(item.imagePreview);
+    setCurrentImageName(item.imageName);
+    setCurrentQty(item.quantity);
+  };
+
+  // Cart summary calculations
+  const totals = calculateCartTotals(cartItems);
+
+  // Handle Checkout Order Submission
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName || !customerPhone) {
-      alert("Vui lòng điền họ tên và số điện thoại nhận hàng!");
+
+    if (!customerName.trim()) {
+      alert("Vui lòng nhập họ và tên của bạn!");
       return;
     }
 
-    // Trigger celebration confetti
+    if (!isValidVietnamPhone(customerPhone)) {
+      alert("Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 số của các nhà mạng Việt Nam (03, 05, 07, 08, 09...).");
+      return;
+    }
+
+    if (!customerAddress.trim()) {
+      alert("Vui lòng nhập địa chỉ nhận hàng để LADA GIFT gửi sản phẩm tận nơi!");
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      alert("Giỏ hàng đang trống!");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Save customer draft info
+    saveCustomerDraft({
+      customerName,
+      phone: customerPhone,
+      address: customerAddress,
+      note: customerNote,
+    });
+
     try {
-      fireHologramConfetti();
-    } catch {
-      // fallback if confetti fails
-    }
-
-    if (onAddToCart) {
-      onAddToCart({
-        id: `custom-${Date.now()}`,
-        name: `${productTypes.find((p) => p.id === productType)?.name} LADA GIFT`,
-        type: productType,
-        size,
-        image: customImage,
-        unitPrice,
-        quantity,
-        totalPrice,
-        customerName,
-        customerPhone,
-        customerAddress,
+      const response = await fetch("/api/order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customer: {
+            customerName: customerName.trim(),
+            phone: customerPhone.trim(),
+            address: customerAddress.trim(),
+            note: customerNote.trim(),
+          },
+          items: cartItems,
+        }),
       });
-    }
 
-    setIsSuccess(true);
+      const result = await response.json();
+
+      if (result.success) {
+        // Trigger celebratory confetti
+        fireHologramConfetti();
+
+        // Clear local storage cart
+        clearCartStorage();
+
+        // Save order success data
+        setOrderSuccessData({
+          orderId: result.orderId,
+          totalPrice: result.totalPrice || totals.totalPrice,
+          items: [...cartItems],
+        });
+
+        // Clear current items state
+        setCartItems([]);
+
+        // Notify parent if listener exists
+        if (onAddToCart) {
+          onAddToCart({
+            orderId: result.orderId,
+            items: cartItems,
+            totalPrice: result.totalPrice,
+          });
+        }
+      } else {
+        alert(result.message || "Không thể gửi đơn hàng. Vui lòng kiểm tra lại thông tin!");
+      }
+    } catch (err: any) {
+      console.error("Order submit failed:", err);
+      alert("Có lỗi mạng khi gửi đơn hàng. Vui lòng thử lại sau!");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const copyOrderId = () => {
+    if (orderSuccessData?.orderId) {
+      navigator.clipboard.writeText(orderSuccessData.orderId);
+      setCopiedOrderId(true);
+      setTimeout(() => setCopiedOrderId(false), 2500);
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-        {/* Backdrop */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+        {/* Soft Glass Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/80 backdrop-blur-md"
+          className="fixed inset-0 bg-slate-900/45 backdrop-blur-md"
         />
 
-        {/* Modal Dialog */}
+        {/* Modal Window - THEME ĐỒNG BỘ NỀN PASTEL HOLOGRAM CỦA LADA GIFT */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.92, y: 20 }}
+          initial={{ opacity: 0, scale: 0.94, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.92, y: 20 }}
+          exit={{ opacity: 0, scale: 0.94, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 260 }}
-          className="relative z-10 w-full max-w-5xl rounded-3xl border border-cyan-500/30 bg-[#0a0d1d]/95 shadow-[0_0_60px_rgba(0,212,255,0.25)] backdrop-blur-2xl overflow-hidden my-auto"
+          className="relative z-10 w-full max-w-6xl rounded-3xl border-2 border-white/90 bg-gradient-to-br from-white/95 via-pink-50/90 to-sky-50/95 shadow-[0_25px_70px_rgba(244,114,182,0.35)] backdrop-blur-2xl text-[#1E1035] overflow-hidden my-auto"
         >
-          {/* Header bar */}
-          <div className="flex items-center justify-between border-b border-pink-200/40 px-6 py-4 bg-white/10">
+          {/* Header Bar */}
+          <div className="flex items-center justify-between border-b border-pink-200/80 px-6 py-4 bg-white/70">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full overflow-hidden border border-pink-300 shadow-md">
+              <div className="h-10 w-10 rounded-full overflow-hidden border border-pink-300 shadow-md flex-shrink-0">
                 <img
                   src="/lada-gift-logo.jpg"
-                  alt="LADA GIFT"
+                  alt="LADA GIFT Logo"
                   className="h-full w-full object-cover"
                 />
               </div>
               <div>
-                <h3 className="text-lg font-black text-white flex items-center gap-2">
-                  LADA GIFT • 3D Design Studio
-                  <span className="hidden sm:inline-block rounded-full bg-pink-500/30 border border-pink-400/50 px-2.5 py-0.5 text-[11px] font-bold text-pink-200">
+                <h3 className="text-base sm:text-lg font-black text-[#1E1035] flex items-center gap-2">
+                  <span>LADA GIFT • 3D Design Studio</span>
+                  <span className="hidden sm:inline-block rounded-full bg-pink-100 border border-pink-300 px-2.5 py-0.5 text-[10px] font-black uppercase text-pink-700">
                     Trực quan hóa thời gian thực
                   </span>
                 </h3>
-                <p className="text-xs text-pink-200/80 font-medium">
-                  Tải ảnh hoặc chọn mẫu để xem mockup mica 3D đổi màu theo góc nhìn
+                <p className="text-[11px] font-semibold text-slate-500">
+                  Đặt nhiều ảnh & sản phẩm khác nhau trong cùng một đơn hàng tiện lợi
                 </p>
               </div>
             </div>
 
             <button
+              type="button"
               onClick={onClose}
-              className="rounded-full border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition cursor-pointer"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 border border-pink-200 text-slate-500 hover:text-pink-600 hover:bg-white hover:border-pink-300 transition shadow-sm cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          {isSuccess ? (
-            /* Success confirmation */
-            <div className="p-8 sm:p-12 text-center">
+          {/* Hidden file input for replacing an existing cart item's image */}
+          <input
+            ref={replaceItemFileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleReplaceItemFile}
+            className="hidden"
+          />
+
+          {/* MAIN MODAL CONTENT */}
+          {orderSuccessData ? (
+            /* ================================================================= */
+            /* SUCCESS CONFIRMATION VIEW                                         */
+            /* ================================================================= */
+            <div className="p-6 sm:p-10 text-center max-h-[80vh] overflow-y-auto">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-tr from-cyan-400 to-purple-600 shadow-xl shadow-cyan-500/40"
+                transition={{ type: "spring", stiffness: 220, damping: 15 }}
+                className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-tr from-pink-500 via-purple-600 to-sky-500 shadow-xl shadow-pink-300/50"
               >
                 <Check className="h-10 w-10 text-white stroke-[3]" />
               </motion.div>
-              <h4 className="mt-6 text-2xl sm:text-3xl font-extrabold text-white">
-                Đặt hàng LADA GIFT thành công!
+
+              <h4 className="mt-5 text-2xl sm:text-3xl font-black text-[#180D2B]">
+                ĐẶT HÀNG LADA GIFT THÀNH CÔNG!
               </h4>
-              <p className="mx-auto mt-2 max-w-md text-sm text-zinc-300">
-                Cảm ơn bạn <span className="font-semibold text-cyan-300">{customerName}</span>! Kỹ
-                thuật viên của chúng tôi sẽ liên hệ qua SĐT{" "}
-                <span className="font-semibold text-purple-300">{customerPhone}</span> trong vòng 15
-                phút để xác nhận file in và xuất xưởng.
+              <p className="mx-auto mt-2 max-w-lg text-sm font-semibold text-slate-600 leading-relaxed">
+                Cảm ơn bạn <span className="font-extrabold text-pink-600">{customerName}</span>!
+                Đội ngũ thiết kế của chúng tôi đã nhận được ảnh và yêu cầu in. Kỹ thuật viên sẽ liên hệ
+                qua số Zalo <span className="font-extrabold text-purple-700">{customerPhone}</span> trong
+                vòng 15 phút để gửi bản demo xem trước miễn phí.
               </p>
 
-              <div className="mx-auto mt-6 max-w-md rounded-2xl border border-white/10 bg-white/5 p-4 text-left font-mono text-xs text-zinc-300">
-                <div className="flex justify-between border-b border-white/10 pb-2">
-                  <span>MÃ ĐƠN HÀNG:</span>
-                  <span className="text-pink-400">#LADA-{Math.floor(100000 + Math.random() * 900000)}</span>
+              {/* Order Info Summary Card */}
+              <div className="mx-auto mt-6 max-w-xl rounded-2xl border-2 border-pink-200/90 bg-white/90 p-5 text-left shadow-lg shadow-pink-100/50">
+                <div className="flex items-center justify-between border-b border-pink-100 pb-3">
+                  <div>
+                    <span className="text-xs font-bold text-slate-500">MÃ ĐƠN HÀNG:</span>
+                    <div className="text-base font-black text-pink-600 font-mono tracking-wider">
+                      {orderSuccessData.orderId}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyOrderId}
+                    className="flex items-center gap-1.5 rounded-xl border border-pink-200 bg-pink-50 px-3 py-1.5 text-xs font-bold text-pink-700 hover:bg-pink-100 transition cursor-pointer"
+                  >
+                    {copiedOrderId ? (
+                      <>
+                        <CheckCheck className="h-3.5 w-3.5 text-emerald-600" />
+                        <span className="text-emerald-700">Đã sao chép</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5" />
+                        <span>Sao chép mã</span>
+                      </>
+                    )}
+                  </button>
                 </div>
-                <div className="flex justify-between py-1 pt-2">
-                  <span>Sản phẩm:</span>
-                  <span className="text-white">
-                    {productTypes.find((p) => p.id === productType)?.name} ({size})
+
+                {/* Items in completed order */}
+                <div className="py-3 divide-y divide-slate-100 max-h-56 overflow-y-auto">
+                  {orderSuccessData.items.map((item, idx) => (
+                    <div key={item.id} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <img
+                          src={item.imagePreview}
+                          alt="Item preview"
+                          className="h-10 w-10 rounded-xl object-cover border border-slate-200 flex-shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <p className="font-black text-[#1E1035] truncate">{item.productName}</p>
+                          <p className="text-[11px] font-semibold text-slate-500">
+                            Size: <span className="font-bold text-pink-600">{item.sizeValue}</span> • Số lượng:{" "}
+                            <span className="font-bold text-purple-700">{item.quantity}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <span className="font-black text-slate-800 font-mono flex-shrink-0">
+                        {formatPrice(item.subtotal)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Total Payment */}
+                <div className="flex items-center justify-between pt-3 border-t border-pink-100">
+                  <span className="text-xs font-black text-slate-700 uppercase">Tổng thanh toán:</span>
+                  <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 font-mono">
+                    {formatPrice(orderSuccessData.totalPrice)}
                   </span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span>Chất liệu:</span>
-                  <span className="text-pink-300">Mica đúc bóng gương CNC</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span>Số lượng:</span>
-                  <span className="text-white">{quantity} chiếc</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t border-white/10 font-bold text-sm">
-                  <span>Tổng tiền:</span>
-                  <span className="text-cyan-300">{formatPrice(totalPrice)}</span>
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-center gap-4">
+              {/* Actions */}
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
                 <button
                   type="button"
                   onClick={() => {
-                    setIsSuccess(false);
+                    setOrderSuccessData(null);
                     onClose();
                   }}
-                  className="rounded-full bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-cyan-500/25 transition hover:brightness-110"
+                  className="rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-8 py-3 text-sm font-black text-white shadow-lg shadow-pink-400/30 hover:brightness-110 transition active:scale-95 cursor-pointer"
                 >
-                  Hoàn tất & Tiếp tục khám phá
+                  Hoàn tất & Tiếp tục mua sắm
                 </button>
               </div>
             </div>
           ) : (
-            /* Main 2-column customizer interface */
-            <div className="grid grid-cols-1 lg:grid-cols-12 max-h-[80vh] overflow-y-auto">
-              {/* Left Column: 3D Holographic Interactive Stage */}
-              <div className="lg:col-span-5 bg-gradient-to-b from-[#0e122b] to-[#080a17] p-6 flex flex-col items-center justify-between border-b lg:border-b-0 lg:border-r border-white/10 relative select-none">
-                {/* Stage background glow */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(0,212,255,0.15),_transparent_70%)] pointer-events-none" />
+            /* ================================================================= */
+            /* 2-COLUMN MULTI-PRODUCT STUDIO & CART INTERFACE                    */
+            /* ================================================================= */
+            <div className="grid grid-cols-1 lg:grid-cols-12 max-h-[82vh] overflow-y-auto">
+              {/* LEFT COLUMN: 3D HOLOGRAPHIC INTERACTIVE STAGE */}
+              <div className="lg:col-span-5 bg-gradient-to-b from-pink-100/50 via-white/80 to-sky-100/50 p-6 flex flex-col items-center justify-between border-b lg:border-b-0 lg:border-r border-pink-200/70 relative select-none">
+                {/* Dreamy Ambient Glow Aura */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(244,114,182,0.22),_transparent_70%)] pointer-events-none" />
 
-                <div className="w-full flex items-center justify-between text-xs text-zinc-400 z-10">
-                  <span className="flex items-center gap-1.5 text-cyan-300">
-                    <Layers className="h-3.5 w-3.5" /> Chế độ 3D Motion
+                <div className="w-full flex items-center justify-between text-xs text-slate-600 z-10 font-bold">
+                  <span className="flex items-center gap-1.5 text-pink-600">
+                    <Layers className="h-3.5 w-3.5" /> 3D Mockup Trực Quan
                   </span>
-                  <span className="italic">Di chuột để xoay góc nhìn</span>
+                  <span className="italic text-slate-500 text-[11px]">Di chuột để xoay 360°</span>
                 </div>
 
                 {/* 3D Acrylic Object Container */}
@@ -314,13 +636,13 @@ export default function DesignCustomizerModal({
                   ref={previewRef}
                   onMouseMove={handleMouseMove}
                   onMouseLeave={handleMouseLeave}
-                  className="relative my-8 flex items-center justify-center w-full min-h-[320px] cursor-grab active:cursor-grabbing perspective-[1000px]"
+                  className="relative my-6 flex items-center justify-center w-full min-h-[310px] cursor-grab active:cursor-grabbing perspective-[1000px]"
                 >
                   <motion.div
                     animate={
                       autoRotate
                         ? {
-                            rotateY: [0, 15, -15, 0],
+                            rotateY: [0, 16, -16, 0],
                             rotateX: [0, -8, 8, 0],
                             y: [0, -10, 0],
                           }
@@ -339,34 +661,36 @@ export default function DesignCustomizerModal({
                     className="relative flex flex-col items-center"
                   >
                     {/* Metal Ring & Keychain connector if keychain */}
-                    {productType === "keychain" && (
+                    {previewType === "keychain" && (
                       <div className="flex flex-col items-center -mb-2 z-20">
-                        {/* Ring */}
-                        <div className="h-10 w-10 rounded-full border-[3.5px] border-zinc-300 shadow-[0_0_12px_rgba(255,255,255,0.4)] bg-gradient-to-tr from-zinc-400 via-zinc-100 to-zinc-500" />
+                        {/* Heart or round metal ring */}
+                        <div className="h-10 w-10 rounded-full border-[3.5px] border-slate-300 shadow-md bg-gradient-to-tr from-slate-200 via-white to-slate-400 flex items-center justify-center">
+                          <Heart className="h-4 w-4 text-pink-500 fill-pink-500 animate-pulse" />
+                        </div>
                         {/* Chain link */}
-                        <div className="h-4 w-2 rounded-full border border-zinc-400 bg-zinc-300 -mt-1 shadow-sm" />
+                        <div className="h-3.5 w-2 rounded-full border border-slate-300 bg-slate-200 -mt-1 shadow-sm" />
                       </div>
                     )}
 
                     {/* Acrylic Body Container */}
                     <div
-                      className={`relative overflow-hidden rounded-2xl border-[2.5px] border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.8),_0_0_35px_rgba(0,212,255,0.35)] backdrop-blur-md transition-all duration-300 ${
-                        size === "S"
+                      className={`relative overflow-hidden rounded-2xl border-[3px] border-white/95 shadow-[0_20px_50px_rgba(244,114,182,0.35)] backdrop-blur-md transition-all duration-300 ${
+                        previewSize === "S"
                           ? "w-44 h-56"
-                          : size === "L"
+                          : previewSize === "L"
                           ? "w-52 h-64"
                           : "w-60 h-76"
                       }`}
                       style={{
                         background:
-                          "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.15) 100%)",
+                          "linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.3) 100%)",
                       }}
                     >
                       {/* Customer Custom Image Layer */}
                       <img
-                        src={customImage}
+                        src={previewImage}
                         alt="Preview"
-                        className="h-full w-full object-cover object-center filter contrast-110"
+                        className="h-full w-full object-cover object-center"
                       />
 
                       {/* Mica Gloss Reflection Overlay */}
@@ -374,171 +698,351 @@ export default function DesignCustomizerModal({
 
                       {/* Moving light sweep shine */}
                       <div
-                        className="pointer-events-none absolute inset-0 opacity-40 mix-blend-overlay"
+                        className="pointer-events-none absolute inset-0 opacity-45 mix-blend-overlay"
                         style={{
                           background:
-                            "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.8) 50%, transparent 60%)",
+                            "linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.9) 50%, transparent 60%)",
                           backgroundSize: "200% 200%",
                         }}
                       />
 
-                      {/* Acrylic bevel edge highlight */}
-                      <div className="pointer-events-none absolute inset-[3px] rounded-xl border border-white/40" />
+                      {/* Diamond CNC bevel edge highlight */}
+                      <div className="pointer-events-none absolute inset-[3px] rounded-xl border border-white/70" />
 
                       {/* Magnet badge indicator if magnet type */}
-                      {productType !== "keychain" && (
-                        <div className="absolute top-2 right-2 rounded-md bg-black/60 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold tracking-wider text-cyan-300 border border-white/20">
-                          {productType === "magnet" ? "MAGNET RUBBER" : "MICA + MAGNET"}
+                      {previewType !== "keychain" && (
+                        <div className="absolute top-2 right-2 rounded-md bg-white/90 backdrop-blur-md px-2 py-0.5 text-[9px] font-black tracking-wider text-pink-700 border border-pink-200 shadow-sm">
+                          {previewType === "magnet" ? "NAM CHÂM DẺO" : "MICA + NAM CHÂM"}
                         </div>
                       )}
                     </div>
 
                     {/* Acrylic 3D Thickness drop shadow simulation */}
-                    <div className="mt-3 h-3 w-40 rounded-full bg-cyan-400/20 blur-md" />
+                    <div className="mt-3 h-3 w-40 rounded-full bg-pink-400/25 blur-md" />
                   </motion.div>
                 </div>
 
-                {/* Bottom preview controls */}
-                <div className="w-full flex items-center justify-between text-xs text-zinc-400 border-t border-white/10 pt-3">
+                {/* Bottom preview controls & status */}
+                <div className="w-full flex items-center justify-between text-xs text-slate-600 border-t border-pink-200/80 pt-3">
                   <button
                     type="button"
                     onClick={() => setAutoRotate(!autoRotate)}
-                    className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-zinc-300 hover:bg-white/10 hover:text-white"
+                    className="flex items-center gap-1.5 rounded-xl border border-pink-200 bg-white/90 px-3 py-1 font-bold text-slate-700 hover:bg-white hover:text-pink-600 transition shadow-sm cursor-pointer"
                   >
                     <RotateCw className="h-3.5 w-3.5" />
                     {autoRotate ? "Dừng xoay" : "Tự động xoay"}
                   </button>
-                  <span className="text-zinc-500 font-mono">Độ dày mica: 3.5mm CNC</span>
+                  <span className="text-[11px] font-bold text-slate-500 font-mono">
+                    Đang xem: {PRODUCT_CONFIGS[previewType]?.name} ({previewSize})
+                  </span>
                 </div>
               </div>
 
-              {/* Right Column: Customization Controls & Checkout Form */}
-              <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-6">
+              {/* RIGHT COLUMN: MULTI-PRODUCT CART & CHECKOUT CONTROLS */}
+              <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-6 bg-white/60">
                 <div className="space-y-6">
-                  {/* Step 1: Choose Product Type */}
-                  <div>
-                    <label className="text-xs font-semibold tracking-wider uppercase text-cyan-400 flex items-center gap-1.5">
-                      <span>1. Chọn loại sản phẩm</span>
-                    </label>
-                    <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                      {productTypes.map((t) => (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => setProductType(t.id)}
-                          className={`flex flex-col items-start p-3 rounded-xl border text-left transition duration-200 ${
-                            productType === t.id
-                              ? "border-cyan-400 bg-cyan-500/15 text-white shadow-lg shadow-cyan-500/10"
-                              : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
-                          }`}
-                        >
-                          <span className="text-sm font-bold text-white">{t.name}</span>
-                          <span className="text-[11px] text-zinc-400 mt-1 line-clamp-1">
-                            {t.tagline}
-                          </span>
-                          <span className="mt-2 text-xs font-semibold text-cyan-300">
-                            từ {formatPrice(t.basePrice)}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Step 2: Choose Size */}
-                  <div>
-                    <label className="text-xs font-semibold tracking-wider uppercase text-cyan-400">
-                      2. Chọn kích thước
-                    </label>
-                    <div className="mt-2.5 grid grid-cols-3 gap-2.5">
-                      {sizeOptions.map((s) => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          onClick={() => setSize(s.id)}
-                          className={`p-3 rounded-xl border text-center transition duration-200 ${
-                            size === s.id
-                              ? "border-purple-400 bg-purple-500/20 text-white shadow-lg shadow-purple-500/10"
-                              : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
-                          }`}
-                        >
-                          <div className="text-sm font-bold text-white">{s.label}</div>
-                          <div className="text-[11px] text-zinc-400 mt-0.5">
-                            {s.priceOffset > 0 ? `+${formatPrice(s.priceOffset)}` : "Giá gốc"}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Step 3: Upload Image OR Pick Presets */}
-                  <div>
+                  {/* ========================================================= */}
+                  {/* 1. PRODUCT CONFIGURATOR SECTION                           */}
+                  {/* ========================================================= */}
+                  <div className="rounded-2xl border-2 border-pink-200/80 bg-white/80 p-4 sm:p-5 shadow-sm space-y-4">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-semibold tracking-wider uppercase text-cyan-400">
-                        3. Tải ảnh của bạn hoặc chọn ảnh mẫu
+                      <h4 className="text-xs font-black uppercase tracking-wider text-pink-700 flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5 text-pink-500" />
+                        <span>
+                          {editingItemId
+                            ? "Đang chỉnh sửa sản phẩm trong giỏ"
+                            : "Cấu hình & Tải ảnh sản phẩm"}
+                        </span>
+                      </h4>
+                      {editingItemId && (
+                        <button
+                          type="button"
+                          onClick={() => setEditingItemId(null)}
+                          className="text-[11px] font-bold text-slate-500 hover:text-pink-600 underline cursor-pointer"
+                        >
+                          Hủy sửa
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Choose Product Type */}
+                    <div>
+                      <label className="text-[11px] font-black uppercase text-slate-600 mb-1.5 block">
+                        1. Loại sản phẩm:
                       </label>
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="text-xs font-semibold text-cyan-300 hover:underline flex items-center gap-1"
-                      >
-                        <Upload className="h-3 w-3" /> Tải ảnh riêng
-                      </button>
-                    </div>
-
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-
-                    {/* Presets row */}
-                    <div className="mt-2.5 flex items-center gap-2 overflow-x-auto pb-1">
-                      {samplePresets.map((preset) => (
-                        <button
-                          key={preset.name}
-                          type="button"
-                          onClick={() => setCustomImage(preset.url)}
-                          className={`flex-shrink-0 flex items-center gap-2 rounded-lg border p-1.5 transition ${
-                            customImage === preset.url
-                              ? "border-cyan-400 bg-cyan-500/20 text-white"
-                              : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20"
-                          }`}
-                        >
-                          <img
-                            src={preset.url}
-                            alt={preset.name}
-                            className="h-7 w-7 rounded object-cover"
-                          />
-                          <span className="text-xs pr-1 font-medium">{preset.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Step 5: Quantity & Shipping info form */}
-                  <form onSubmit={handleCompleteOrder} className="space-y-4 pt-2 border-t border-white/10">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-zinc-400">Số lượng:</span>
-                      <div className="flex items-center rounded-lg border border-white/15 bg-white/5">
-                        <button
-                          type="button"
-                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          className="px-3 py-1 text-zinc-300 hover:text-white"
-                        >
-                          -
-                        </button>
-                        <span className="px-3 py-1 text-sm font-bold text-white">{quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => setQuantity(quantity + 1)}
-                          className="px-3 py-1 text-zinc-300 hover:text-white"
-                        >
-                          +
-                        </button>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {productTypesList.map((t) => {
+                          const isSelected = currentType === t.id;
+                          return (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={() => setCurrentType(t.id)}
+                              className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition duration-200 cursor-pointer ${
+                                isSelected
+                                  ? "border-2 border-pink-500 bg-pink-50/90 text-[#1E1035] shadow-md shadow-pink-200/40"
+                                  : "border-slate-200 bg-white/90 text-slate-600 hover:border-pink-300 hover:bg-white"
+                              }`}
+                            >
+                              <span className="text-xs font-black text-[#1E1035]">{t.name}</span>
+                              <span className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
+                                {t.tagline}
+                              </span>
+                              <span className="mt-1 text-[11px] font-black text-pink-600">
+                                từ {formatPrice(t.basePrice)}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
+
+                    {/* Choose Size */}
+                    <div>
+                      <label className="text-[11px] font-black uppercase text-slate-600 mb-1.5 block">
+                        2. Kích thước mica:
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {sizeOptionsList.map((s) => {
+                          const isSelected = currentSize === s.id;
+                          return (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => setCurrentSize(s.id)}
+                              className={`p-2 rounded-xl border text-center transition duration-200 cursor-pointer ${
+                                isSelected
+                                  ? "border-2 border-purple-500 bg-purple-50/90 text-[#1E1035] shadow-md shadow-purple-200/40"
+                                  : "border-slate-200 bg-white/90 text-slate-600 hover:border-purple-300 hover:bg-white"
+                              }`}
+                            >
+                              <div className="text-xs font-black text-[#1E1035]">{s.label}</div>
+                              <div className="text-[10px] font-semibold text-slate-500 mt-0.5">
+                                {s.priceOffset > 0 ? `+${formatPrice(s.priceOffset)}` : "Giá gốc"}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Upload or Pick Image */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-black uppercase text-slate-600">
+                          3. Ảnh in cho sản phẩm này:
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="text-xs font-bold text-pink-600 hover:text-pink-700 flex items-center gap-1 cursor-pointer"
+                        >
+                          <Upload className="h-3 w-3" /> Tải ảnh riêng từ máy
+                        </button>
+                      </div>
+
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+
+                      {/* Presets and Upload Preview */}
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                        {samplePresets.map((preset) => {
+                          const isSelected = currentImage === preset.url;
+                          return (
+                            <button
+                              key={preset.name}
+                              type="button"
+                              onClick={() => {
+                                setCurrentImage(preset.url);
+                                setCurrentImageName(preset.name);
+                              }}
+                              className={`flex-shrink-0 flex items-center gap-1.5 rounded-xl border p-1.5 transition cursor-pointer ${
+                                isSelected
+                                  ? "border-2 border-pink-500 bg-pink-50 text-[#1E1035] shadow-sm"
+                                  : "border-slate-200 bg-white/90 text-slate-600 hover:border-pink-300"
+                              }`}
+                            >
+                              <img
+                                src={preset.url}
+                                alt={preset.name}
+                                className="h-6 w-6 rounded-lg object-cover"
+                              />
+                              <span className="text-[11px] font-bold pr-1">{preset.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Quantity & Add to Cart button */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-600">Số lượng:</span>
+                        <div className="flex items-center rounded-xl border border-pink-200 bg-white shadow-sm">
+                          <button
+                            type="button"
+                            onClick={() => setCurrentQty(Math.max(1, currentQty - 1))}
+                            className="px-2.5 py-1 text-slate-600 hover:text-pink-600 font-bold cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="px-2.5 py-1 text-xs font-black text-[#1E1035] min-w-[24px] text-center">
+                            {currentQty}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentQty(currentQty + 1)}
+                            className="px-2.5 py-1 text-slate-600 hover:text-pink-600 font-bold cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <span className="text-xs font-black text-pink-600 font-mono ml-1">
+                          = {formatPrice(calculateItemPrice(currentType, currentSize, currentQty).subtotal)}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAddOrUpdateItem}
+                        className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-4 py-2 text-xs font-black text-white shadow-md shadow-pink-300/40 hover:brightness-110 transition active:scale-95 cursor-pointer"
+                      >
+                        <Plus className="h-3.5 w-3.5 stroke-[3]" />
+                        <span>
+                          {editingItemId
+                            ? "Lưu cập nhật sản phẩm này"
+                            : "Thêm sản phẩm này vào giỏ"}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ========================================================= */}
+                  {/* 2. MULTI-ITEM CART LIST SECTION                           */}
+                  {/* ========================================================= */}
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-black uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
+                        <ShoppingBag className="h-3.5 w-3.5" />
+                        <span>Giỏ hàng của bạn ({cartItems.length} sản phẩm)</span>
+                      </label>
+                      <span className="text-[11px] font-bold text-pink-600">
+                        Freeship toàn quốc từ 2c
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                      {cartItems.map((item, index) => {
+                        const isCurrentlyActiveIn3D = activePreviewIndex === index;
+                        return (
+                          <div
+                            key={item.id}
+                            className={`flex items-center justify-between gap-3 p-3 rounded-2xl border transition ${
+                              isCurrentlyActiveIn3D
+                                ? "border-2 border-pink-400 bg-pink-50/60 shadow-sm"
+                                : "border-pink-200/70 bg-white/90 hover:border-pink-300"
+                            }`}
+                          >
+                            {/* Left: Thumbnail & details */}
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="relative h-12 w-12 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0 bg-slate-50">
+                                <img
+                                  src={item.imagePreview}
+                                  alt={item.productName}
+                                  className="h-full w-full object-cover"
+                                />
+                                {isCurrentlyActiveIn3D && (
+                                  <span className="absolute bottom-0 inset-x-0 bg-pink-600 text-[8px] font-black text-white text-center py-0.5">
+                                    Đang xem 3D
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="min-w-0">
+                                <h5 className="text-xs font-black text-[#1E1035] truncate leading-tight">
+                                  {item.productName}
+                                </h5>
+                                <p className="text-[10px] font-bold text-slate-500 mt-0.5">
+                                  Size: <span className="text-pink-600">{item.sizeValue}</span> •{" "}
+                                  <span className="text-purple-700">{formatPrice(item.unitPrice)}/c</span>
+                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => setActivePreviewIndex(index)}
+                                    className="text-[10px] font-bold text-sky-600 hover:text-sky-700 flex items-center gap-0.5 cursor-pointer"
+                                  >
+                                    <Eye className="h-3 w-3" /> Xem 3D
+                                  </button>
+                                  <span className="text-slate-300">•</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      replacingItemIdRef.current = item.id;
+                                      replaceItemFileInputRef.current?.click();
+                                    }}
+                                    className="text-[10px] font-bold text-purple-600 hover:text-purple-700 flex items-center gap-0.5 cursor-pointer"
+                                  >
+                                    <ImageIcon className="h-3 w-3" /> Đổi ảnh
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Right: Quantity, Subtotal, Delete */}
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              {/* Quantity buttons */}
+                              <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-xs">
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateItemQty(item.id, -1)}
+                                  className="px-2 py-0.5 text-xs text-slate-600 hover:text-pink-600 font-bold cursor-pointer"
+                                >
+                                  -
+                                </button>
+                                <span className="px-2 py-0.5 text-xs font-black text-[#1E1035] min-w-[20px] text-center">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateItemQty(item.id, 1)}
+                                  className="px-2 py-0.5 text-xs text-slate-600 hover:text-pink-600 font-bold cursor-pointer"
+                                >
+                                  +
+                                </button>
+                              </div>
+
+                              <span className="text-xs font-black text-slate-800 font-mono w-16 text-right">
+                                {formatPrice(item.subtotal)}
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteItem(item.id)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition cursor-pointer"
+                                title="Xóa sản phẩm này"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* ========================================================= */}
+                  {/* 3. CUSTOMER CHECKOUT INFORMATION FORM                     */}
+                  {/* ========================================================= */}
+                  <form onSubmit={handleSubmitOrder} className="space-y-3.5 pt-3 border-t border-pink-200/80">
+                    <label className="text-xs font-black uppercase tracking-wider text-slate-700 block">
+                      Thông tin nhận hàng (Xác nhận qua Zalo):
+                    </label>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
@@ -548,7 +1052,7 @@ export default function DesignCustomizerModal({
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
                           placeholder="Họ và tên của bạn *"
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-cyan-400 focus:outline-none"
+                          className="w-full rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2 text-xs font-bold text-[#1E1035] placeholder-slate-400 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 focus:outline-none shadow-xs"
                         />
                       </div>
                       <div>
@@ -557,8 +1061,8 @@ export default function DesignCustomizerModal({
                           required
                           value={customerPhone}
                           onChange={(e) => setCustomerPhone(e.target.value)}
-                          placeholder="Số điện thoại Zalo nhận mẫu *"
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-cyan-400 focus:outline-none"
+                          placeholder="Số điện thoại Zalo nhận bản in demo *"
+                          className="w-full rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2 text-xs font-bold text-[#1E1035] placeholder-slate-400 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 focus:outline-none shadow-xs"
                         />
                       </div>
                     </div>
@@ -566,28 +1070,52 @@ export default function DesignCustomizerModal({
                     <div>
                       <input
                         type="text"
+                        required
                         value={customerAddress}
                         onChange={(e) => setCustomerAddress(e.target.value)}
-                        placeholder="Địa chỉ nhận hàng (Ví dụ: 123 Cầu Giấy, Hà Nội)"
-                        className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-cyan-400 focus:outline-none"
+                        placeholder="Địa chỉ nhận hàng (Ví dụ: 123 Cầu Giấy, Hà Nội) *"
+                        className="w-full rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2 text-xs font-bold text-[#1E1035] placeholder-slate-400 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 focus:outline-none shadow-xs"
                       />
                     </div>
 
-                    {/* Total Price and Submit Button */}
-                    <div className="flex items-center justify-between pt-2">
+                    <div>
+                      <input
+                        type="text"
+                        value={customerNote}
+                        onChange={(e) => setCustomerNote(e.target.value)}
+                        placeholder="Ghi chú đơn hàng (Ví dụ: Cắt theo form viền ảnh, in thêm chữ...)"
+                        className="w-full rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2 text-xs font-bold text-[#1E1035] placeholder-slate-400 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 focus:outline-none shadow-xs"
+                      />
+                    </div>
+
+                    {/* Summary row & Submit Button */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-pink-200/80">
                       <div>
-                        <div className="text-xs text-zinc-400">Tổng thanh toán (Freeship từ 2c):</div>
-                        <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400">
-                          {formatPrice(totalPrice)}
+                        <div className="text-[11px] font-bold text-slate-500">
+                          Tổng {totals.totalItems} dòng ({totals.totalQuantity} chiếc) •{" "}
+                          <span className="text-emerald-600 font-black">Miễn phí ship</span>:
+                        </div>
+                        <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 font-mono">
+                          {formatPrice(totals.totalPrice)}
                         </div>
                       </div>
 
                       <button
                         type="submit"
-                        className="flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 via-purple-600 to-pink-500 px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white shadow-lg shadow-cyan-500/25 transition hover:brightness-110 active:scale-95"
+                        disabled={isSubmitting || cartItems.length === 0}
+                        className="flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-6 sm:px-8 py-3.5 text-sm sm:text-base font-black text-white shadow-lg shadow-pink-300/50 hover:brightness-110 active:scale-95 transition disabled:opacity-50 cursor-pointer"
                       >
-                        <ShoppingBag className="h-4 w-4" />
-                        <span>Đặt in sản phẩm này</span>
+                        {isSubmitting ? (
+                          <>
+                            <RotateCw className="h-4 w-4 animate-spin text-white" />
+                            <span>Đang lưu đơn hàng...</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingBag className="h-4 w-4" />
+                            <span>Đặt in {totals.totalQuantity} sản phẩm này</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </form>
