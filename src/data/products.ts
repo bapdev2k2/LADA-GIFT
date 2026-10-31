@@ -69,14 +69,62 @@ export const products: Product[] = [
 ];
 
 export const galleryItems = [
-  { id: 1, title: 'Móc khóa LADA GIFT anime', category: 'keychain', span: 'col-span-2 row-span-2' },
-  { id: 2, title: 'Nam châm gia đình hạnh phúc', category: 'magnet', span: 'col-span-1 row-span-1' },
-  { id: 3, title: 'Mica thú cưng đáng yêu', category: 'mica-magnet', span: 'col-span-1 row-span-2' },
-  { id: 4, title: 'Móc khóa couple kỷ niệm', category: 'keychain', span: 'col-span-1 row-span-1' },
-  { id: 5, title: 'Nam châm phong cảnh du lịch', category: 'magnet', span: 'col-span-2 row-span-1' },
-  { id: 6, title: 'Mica sự kiện LADA GIFT', category: 'mica-magnet', span: 'col-span-1 row-span-1' },
-  { id: 7, title: 'Móc khóa Chibi dễ thương', category: 'keychain', span: 'col-span-1 row-span-1' },
-  { id: 8, title: 'Nam châm bé yêu LADA GIFT', category: 'magnet', span: 'col-span-1 row-span-1' },
+  {
+    id: 1,
+    title: 'Thành phẩm Móc khóa Mica LADA GIFT',
+    category: 'keychain',
+    image: '/gallery/gallery-1.jpg',
+    span: 'col-span-2 row-span-2',
+    description: 'Móc khóa mica acrylic đúc trong suốt 99.8%, in UV sắc nét và vát cạnh kim cương CNC bóng loáng.',
+  },
+  {
+    id: 2,
+    title: 'Nam châm in hình kỷ niệm',
+    category: 'magnet',
+    image: '/gallery/gallery-2.jpg',
+    span: 'col-span-1 row-span-1',
+    description: 'Nam châm lực hút cực mạnh, bề mặt bóng loáng, gắn tủ lạnh và bảng từ sang trọng.',
+  },
+  {
+    id: 3,
+    title: 'Mica nam châm vát cạnh kim cương',
+    category: 'mica-magnet',
+    image: '/gallery/gallery-3.jpg',
+    span: 'col-span-1 row-span-1',
+    description: 'Độ bóng gương cao cấp, mặt sau nam châm chìm tinh tế, món quà lưu niệm độc đáo.',
+  },
+  {
+    id: 4,
+    title: 'Set quà tặng móc khóa cá nhân hóa',
+    category: 'keychain',
+    image: '/gallery/gallery-4.jpg',
+    span: 'col-span-2 row-span-1',
+    description: 'Gia công chi tiết sắc nét từng góc cạnh theo yêu cầu thiết kế riêng của khách hàng.',
+  },
+  {
+    id: 5,
+    title: 'Móc khóa in hình nhân vật yêu thích',
+    category: 'keychain',
+    image: '/gallery/gallery-5.jpg',
+    span: 'col-span-1 row-span-1',
+    description: 'Chuẩn màu 100% so với file thiết kế, mực in UV Nhật Bản bền bỉ không phai.',
+  },
+  {
+    id: 6,
+    title: 'Mica quà tặng cao cấp LADA GIFT',
+    category: 'mica-magnet',
+    image: '/gallery/gallery-6.jpg',
+    span: 'col-span-1 row-span-1',
+    description: 'Chất liệu mica đúc dày 3.5mm chống trầy xước, viền vát quang học bắt sáng lung linh.',
+  },
+  {
+    id: 7,
+    title: 'Khoảnh khắc hoàng hôn kỷ niệm LADA GIFT',
+    category: 'magnet',
+    image: '/gallery/gallery-7.png',
+    span: 'col-span-2 row-span-1',
+    description: 'Bản in kỷ niệm gia đình ngọt ngào, lưu giữ trọn vẹn từng khoảnh khắc đáng nhớ nhất.',
+  },
 ];
 
 export const whyChooseUs = [
