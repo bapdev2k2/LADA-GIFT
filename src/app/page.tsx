@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ProductShowcase from "@/components/ProductShowcase";
@@ -18,8 +18,13 @@ import SectionDivider from "@/components/SectionDivider";
 import DesignCustomizerModal from "@/components/DesignCustomizerModal";
 import ProductDetailsModal from "@/components/ProductDetailsModal";
 import { type Product } from "@/data/products";
+import { clearCartStorage } from "@/lib/cartStorage";
 
 export default function Home() {
+  // Xóa sạch giỏ hàng cũ mỗi khi loading lại web
+  useEffect(() => {
+    clearCartStorage();
+  }, []);
   // State for Customizer Studio Modal
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [customizerProductType, setCustomizerProductType] = useState<

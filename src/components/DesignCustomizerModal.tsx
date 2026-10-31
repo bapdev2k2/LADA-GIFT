@@ -144,35 +144,31 @@ export default function DesignCustomizerModal({
   const replacingItemIdRef = useRef<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Initialize and load saved cart from storage on mount
+  // Mỗi khi loading lại trang web: Xóa sạch thông tin cũ trong giỏ hàng và biểu mẫu
   useEffect(() => {
-    const saved = loadCartFromStorage();
-    if (saved && saved.length > 0) {
-      setCartItems(saved);
-    } else {
-      // Default initial item
-      const initialItem: CartItem = {
-        id: `item-${Date.now()}-1`,
-        productType: initialProductType,
-        productName: PRODUCT_CONFIGS[initialProductType]?.name || "Móc khóa mica",
-        size: initialSize,
-        sizeValue: SIZE_CONFIGS[initialSize]?.dimension || "10 cm",
-        quantity: 1,
-        imagePreview: samplePresets[0].url,
-        imageName: "lada-gift-logo.jpg",
-        unitPrice: calculateItemPrice(initialProductType, initialSize, 1).unitPrice,
-        subtotal: calculateItemPrice(initialProductType, initialSize, 1).subtotal,
-      };
-      setCartItems([initialItem]);
-    }
+    clearCartStorage();
 
-    const savedCustomer = loadCustomerDraft();
-    if (savedCustomer) {
-      if (savedCustomer.customerName) setCustomerName(savedCustomer.customerName);
-      if (savedCustomer.phone) setCustomerPhone(savedCustomer.phone);
-      if (savedCustomer.address) setCustomerAddress(savedCustomer.address);
-      if (savedCustomer.note) setCustomerNote(savedCustomer.note);
-    }
+    // Khởi tạo sản phẩm mới hoàn toàn
+    const initialItem: CartItem = {
+      id: `item-${Date.now()}-1`,
+      productType: initialProductType,
+      productName: PRODUCT_CONFIGS[initialProductType]?.name || "Móc khóa mica",
+      size: initialSize,
+      sizeValue: SIZE_CONFIGS[initialSize]?.dimension || "10 cm",
+      quantity: 1,
+      imagePreview: samplePresets[0].url,
+      imageName: "lada-gift-logo.jpg",
+      unitPrice: calculateItemPrice(initialProductType, initialSize, 1).unitPrice,
+      subtotal: calculateItemPrice(initialProductType, initialSize, 1).subtotal,
+    };
+    setCartItems([initialItem]);
+    setActivePreviewIndex(0);
+
+    // Xóa sạch thông tin khách hàng cũ
+    setCustomerName("");
+    setCustomerPhone("");
+    setCustomerAddress("");
+    setCustomerNote("");
   }, [initialProductType, initialSize]);
 
   // Synchronize cart changes to LocalStorage

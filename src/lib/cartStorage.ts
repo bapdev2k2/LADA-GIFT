@@ -59,12 +59,11 @@ const STORAGE_KEY = "lada_gift_cart_v2";
 const CUSTOMER_STORAGE_KEY = "lada_gift_customer_v2";
 
 /**
- * Save cart items to LocalStorage
+ * Save cart items to SessionStorage (tự động xóa khi đóng tab hoặc tải lại)
  */
 export function saveCartToStorage(items: CartItem[]): void {
   if (typeof window === "undefined") return;
   try {
-    // Exclude raw File objects when serializing to JSON
     const serialized = items.map((item) => ({
       id: item.id,
       productType: item.productType,
@@ -77,19 +76,19 @@ export function saveCartToStorage(items: CartItem[]): void {
       unitPrice: item.unitPrice,
       subtotal: item.subtotal,
     }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(serialized));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(serialized));
   } catch (err) {
-    console.warn("Could not save cart to localStorage (might exceed quota):", err);
+    console.warn("Could not save cart to sessionStorage:", err);
   }
 }
 
 /**
- * Load cart items from LocalStorage
+ * Load cart items from Storage
  */
 export function loadCartFromStorage(): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
@@ -100,18 +99,21 @@ export function loadCartFromStorage(): CartItem[] {
       }));
     }
   } catch (err) {
-    console.warn("Could not load cart from localStorage:", err);
+    console.warn("Could not load cart from storage:", err);
   }
   return [];
 }
 
 /**
- * Clear cart storage
+ * Clear cart storage (Xóa toàn bộ cả localStorage và sessionStorage)
  */
 export function clearCartStorage(): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(CUSTOMER_STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(CUSTOMER_STORAGE_KEY);
   } catch (err) {
     console.warn("Error clearing cart storage:", err);
   }
