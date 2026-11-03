@@ -70,6 +70,11 @@ function AcrylicProductSVG() {
         <filter id="cta-glow-filter" x="-30%" y="-30%" width="160%" height="160%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
         </filter>
+
+        {/* Clip path for LADA GIFT Logo */}
+        <clipPath id="cta-logo-clip">
+          <rect x="98" y="98" width="124" height="124" rx="16" />
+        </clipPath>
       </defs>
 
       {/* Outer glow ring */}
@@ -139,17 +144,51 @@ function AcrylicProductSVG() {
       <line x1="50" y1="220" x2="270" y2="220" stroke="white" strokeOpacity="0.05" strokeWidth="0.5" />
 
       {/* Diamond sparkles */}
-      <path d="M160 120 L165 135 L160 150 L155 135 Z" fill="white" fillOpacity="0.15" />
-      <path d="M100 170 L104 180 L100 190 L96 180 Z" fill="white" fillOpacity="0.1" />
-      <path d="M220 160 L223 168 L220 176 L217 168 Z" fill="white" fillOpacity="0.12" />
+      <path d="M160 70 L163 80 L160 90 L157 80 Z" fill="white" fillOpacity="0.25" />
+      <path d="M72 160 L75 168 L72 176 L69 168 Z" fill="white" fillOpacity="0.2" />
+      <path d="M248 160 L251 168 L248 176 L245 168 Z" fill="white" fillOpacity="0.2" />
 
-      {/* Large central diamond / holographic emblem */}
-      <path
-        d="M160 90 L190 145 L160 200 L130 145 Z"
+      {/* Center LADA GIFT Logo with Acrylic Glass Effect */}
+      <rect
+        x="96"
+        y="96"
+        width="128"
+        height="128"
+        rx="18"
+        fill="white"
+        fillOpacity="0.95"
+        stroke="url(#cta-edge-glow)"
+        strokeWidth="2"
+        filter="url(#cta-glow-filter)"
+        opacity="0.3"
+      />
+      <rect
+        x="98"
+        y="98"
+        width="124"
+        height="124"
+        rx="16"
+        fill="white"
+      />
+      <image
+        href="/lada-gift-logo.jpg"
+        x="98"
+        y="98"
+        width="124"
+        height="124"
+        preserveAspectRatio="xMidYMid slice"
+        clipPath="url(#cta-logo-clip)"
+      />
+      {/* Glossy edge around logo */}
+      <rect
+        x="98"
+        y="98"
+        width="124"
+        height="124"
+        rx="16"
         fill="none"
-        stroke="url(#cta-shimmer)"
+        stroke="url(#cta-edge-glow)"
         strokeWidth="1.5"
-        strokeOpacity="0.4"
       />
 
       {/* Small star sparkles */}

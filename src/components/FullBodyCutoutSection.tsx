@@ -399,7 +399,7 @@ export default function FullBodyCutoutSection({
               {/* Real Product Image Preview */}
               <div className="relative aspect-[16/9] rounded-2xl overflow-hidden mb-6 bg-purple-50 border border-pink-100 group">
                 <Image
-                  src="/gallery/gallery-1.jpg"
+                  src="/images/lada/keychain-pets.webp"
                   alt="Móc khóa mica toàn thân đúc acrylic"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -473,7 +473,7 @@ export default function FullBodyCutoutSection({
               {/* Real Product Image Preview */}
               <div className="relative aspect-[16/9] rounded-2xl overflow-hidden mb-6 bg-purple-50 border border-indigo-100 group">
                 <Image
-                  src="/gallery/gallery-3.jpg"
+                  src="/images/lada/magnet-colors-hand.webp"
                   alt="Ảnh mica nam châm vát cạnh kim cương LADA GIFT"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"

@@ -295,10 +295,10 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
                   </span>
                 </div>
 
-                {/* Real Product Photo (`gallery-3.jpg`) */}
+                {/* Real Product Photo (`magnet-idols-hand.webp`) */}
                 <div className="relative h-36 sm:h-40 w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center shadow-inner">
                   <img
-                    src="/gallery/gallery-3.jpg"
+                    src="/images/lada/magnet-idols-hand.webp"
                     alt="Nam châm mica tủ lạnh kỷ niệm LADA GIFT"
                     className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
                   />
@@ -361,10 +361,10 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
                   </span>
                 </div>
 
-                {/* Real Product Photo from Workshop (`gallery-1.jpg`) */}
+                {/* Real Product Photo from Workshop (`keychain-shiba-hand.webp`) */}
                 <div className="relative h-40 sm:h-46 w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center shadow-inner">
                   <img
-                    src="/gallery/gallery-1.jpg"
+                    src="/images/lada/keychain-shiba-hand.webp"
                     alt="Móc khóa mica in hình LADA GIFT"
                     className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
                   />
@@ -421,10 +421,10 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
                   </span>
                 </div>
 
-                {/* Real Product Photo (`gallery-4.jpg`) */}
+                {/* Real Product Photo (`magnet-family-decor.webp`) */}
                 <div className="relative h-36 sm:h-40 w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center shadow-inner">
                   <img
-                    src="/gallery/gallery-4.jpg"
+                    src="/images/lada/magnet-family-decor.webp"
                     alt="Set quà tặng mica in hình LADA GIFT"
                     className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
                   />
