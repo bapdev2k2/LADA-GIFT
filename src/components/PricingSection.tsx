@@ -315,8 +315,14 @@ export default function PricingSection({ onOpenCustomizer }: PricingSectionProps
           </div>
         </div>
 
-        {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+        {/* Pricing Cards Grid / Full Width Container */}
+        <div
+          className={
+            activeTab === "all"
+              ? "grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch"
+              : "w-full max-w-5xl mx-auto"
+          }
+        >
           {filteredCards.map((card, idx) => {
             const promoList =
               language === "th"
@@ -325,44 +331,49 @@ export default function PricingSection({ onOpenCustomizer }: PricingSectionProps
                 ? card.promotionsEn
                 : card.promotions;
 
+            const isSingle = activeTab !== "all";
+
             return (
               <motion.div
                 key={card.id}
                 initial={{ opacity: 0, y: 25 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: idx * 0.12 }}
-                className={`relative rounded-3xl border-2 ${card.borderColor} bg-white/90 backdrop-blur-xl shadow-xl shadow-pink-200/25 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: idx * 0.08 }}
+                className={`relative rounded-3xl border-2 ${card.borderColor} bg-white/95 backdrop-blur-xl shadow-xl shadow-pink-200/25 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-2xl ${
+                  isSingle ? "w-full" : "hover:-translate-y-1"
+                }`}
               >
                 {/* Top Ambient Highlight */}
-                <div className={`absolute top-0 inset-x-0 h-32 bg-gradient-to-b ${card.gradient} pointer-events-none`} />
+                <div className={`absolute top-0 inset-x-0 h-40 bg-gradient-to-b ${card.gradient} pointer-events-none`} />
 
                 <div>
                   {/* Card Header & Badge */}
-                  <div className="p-6 sm:p-7 pb-4 relative z-10 border-b border-slate-100">
-                    <div className="flex items-center justify-between gap-3 mb-3">
-                      <span
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black text-white bg-gradient-to-r ${card.badgeColor} shadow-sm`}
-                      >
-                        <Zap className="h-3 w-3 fill-white" />
-                        {language === "th" ? card.badgeTh : language === "en" ? card.badgeEn : card.badge}
-                      </span>
-                      <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
-                        {language === "th" ? card.minOrderTh : language === "en" ? card.minOrderEn : card.minOrder}
-                      </span>
+                  <div className={`p-6 sm:p-8 pb-5 relative z-10 border-b border-slate-100 ${isSingle ? "flex flex-col md:flex-row md:items-center md:justify-between gap-5" : ""}`}>
+                    <div className={isSingle ? "max-w-xl" : ""}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <span
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black text-white bg-gradient-to-r ${card.badgeColor} shadow-sm`}
+                        >
+                          <Zap className="h-3 w-3 fill-white" />
+                          {language === "th" ? card.badgeTh : language === "en" ? card.badgeEn : card.badge}
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                          {language === "th" ? card.minOrderTh : language === "en" ? card.minOrderEn : card.minOrder}
+                        </span>
+                      </div>
+
+                      <h3 className={`font-black text-[#1E1035] mb-1.5 ${isSingle ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"}`}>
+                        {language === "th" ? card.titleTh : language === "en" ? card.titleEn : card.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
+                        {language === "th" ? card.subtitleTh : language === "en" ? card.subtitleEn : card.subtitle}
+                      </p>
                     </div>
 
-                    <h3 className="text-xl sm:text-2xl font-black text-[#1E1035] mb-1.5">
-                      {language === "th" ? card.titleTh : language === "en" ? card.titleEn : card.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                      {language === "th" ? card.subtitleTh : language === "en" ? card.subtitleEn : card.subtitle}
-                    </p>
-
                     {/* Flyer Preview Pill */}
-                    <div className="mt-4 flex items-center justify-between p-2.5 rounded-2xl bg-pink-50/70 border border-pink-200/60">
+                    <div className={`flex items-center justify-between p-3 rounded-2xl bg-pink-50/80 border border-pink-200/70 shadow-xs ${isSingle ? "md:min-w-[280px] flex-shrink-0" : "mt-4"}`}>
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="relative h-10 w-8 rounded-lg overflow-hidden border border-pink-300 flex-shrink-0 bg-white">
+                        <div className="relative h-11 w-9 rounded-lg overflow-hidden border border-pink-300 flex-shrink-0 bg-white shadow-xs">
                           <Image
                             src={card.flyerImage}
                             alt={card.title}
@@ -375,7 +386,7 @@ export default function PricingSection({ onOpenCustomizer }: PricingSectionProps
                             {language === "th" ? "ภาพโปสเตอร์ราคาทางการ" : language === "en" ? "Official Price Flyer" : "Bảng giá in thực tế LADA"}
                           </p>
                           <p className="text-[10px] text-slate-500 font-medium">
-                            {language === "th" ? "แตะเพื่อดูภาพขนาดเต็ม" : language === "en" ? "Click to view full image" : "Nhấn để phóng to xem chi tiết"}
+                            {language === "th" ? "แตะ để xem phóng to" : language === "en" ? "Click to view full flyer" : "Nhấn để phóng to xem chi tiết"}
                           </p>
                         </div>
                       </div>
@@ -383,58 +394,70 @@ export default function PricingSection({ onOpenCustomizer }: PricingSectionProps
                       <button
                         type="button"
                         onClick={() => setLightboxImage({ src: card.flyerImage, title: card.title })}
-                        className="p-2 rounded-xl bg-white text-pink-600 hover:bg-pink-600 hover:text-white transition shadow-sm border border-pink-200 cursor-pointer"
+                        className="p-2 rounded-xl bg-white text-pink-600 hover:bg-pink-600 hover:text-white transition shadow-sm border border-pink-200 cursor-pointer ml-2 flex-shrink-0"
                         title="Phóng to bảng giá"
                       >
-                        <Maximize2 className="h-3.5 w-3.5" />
+                        <Maximize2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
 
                   {/* Pricing Groups Table */}
-                  <div className="p-6 sm:p-7 space-y-4">
-                    {card.groups.map((grp, gIdx) => {
-                      const IconComp = grp.icon;
-                      const styleTitle =
-                        language === "th"
-                          ? grp.styleNameTh
-                          : language === "en"
-                          ? grp.styleNameEn
-                          : grp.styleName;
+                  <div className={`p-6 sm:p-8 space-y-5`}>
+                    <div
+                      className={
+                        isSingle
+                          ? `grid gap-4 ${
+                              card.groups.length === 2
+                                ? "grid-cols-1 md:grid-cols-2"
+                                : "grid-cols-1 md:grid-cols-3"
+                            }`
+                          : "space-y-4"
+                      }
+                    >
+                      {card.groups.map((grp, gIdx) => {
+                        const IconComp = grp.icon;
+                        const styleTitle =
+                          language === "th"
+                            ? grp.styleNameTh
+                            : language === "en"
+                            ? grp.styleNameEn
+                            : grp.styleName;
 
-                      return (
-                        <div
-                          key={gIdx}
-                          className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 space-y-2 hover:bg-pink-50/40 hover:border-pink-200 transition"
-                        >
-                          <div className="flex items-center gap-2 pb-1.5 border-b border-slate-200/70">
-                            <span className={`p-1.5 rounded-lg ${grp.iconColor}`}>
-                              <IconComp className="h-3.5 w-3.5" />
-                            </span>
-                            <span className="text-xs font-black uppercase text-[#1E1035] tracking-wide">
-                              {styleTitle}
-                            </span>
-                          </div>
+                        return (
+                          <div
+                            key={gIdx}
+                            className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4 space-y-2.5 hover:bg-pink-50/40 hover:border-pink-200 transition"
+                          >
+                            <div className="flex items-center gap-2 pb-2 border-b border-slate-200/70">
+                              <span className={`p-1.5 rounded-lg ${grp.iconColor}`}>
+                                <IconComp className="h-4 w-4" />
+                              </span>
+                              <span className="text-xs font-black uppercase text-[#1E1035] tracking-wide">
+                                {styleTitle}
+                              </span>
+                            </div>
 
-                          <div className="space-y-1.5">
-                            {grp.items.map((item, iIdx) => (
-                              <div key={iIdx} className="flex items-center justify-between text-xs">
-                                <span className="text-slate-600 font-medium">{item.size}</span>
-                                <span className="font-black text-pink-600 font-mono text-sm">
-                                  {formatPrice(item.price)}
-                                  <span className="text-[10px] text-slate-400 font-normal">/c</span>
-                                </span>
-                              </div>
-                            ))}
+                            <div className="space-y-2">
+                              {grp.items.map((item, iIdx) => (
+                                <div key={iIdx} className="flex items-center justify-between text-xs">
+                                  <span className="text-slate-600 font-medium">{item.size}</span>
+                                  <span className="font-black text-pink-600 font-mono text-sm">
+                                    {formatPrice(item.price)}
+                                    <span className="text-[10px] text-slate-400 font-normal">/c</span>
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
 
                     {/* Promotions & Deals Box */}
-                    <div className="mt-4 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/80 via-white to-pink-50/80 p-3.5 space-y-2">
+                    <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/90 via-white to-pink-50/90 p-4 space-y-3">
                       <div className="flex items-center gap-1.5 text-xs font-black text-amber-700">
-                        <Gift className="h-3.5 w-3.5 text-amber-600" />
+                        <Gift className="h-4 w-4 text-amber-600" />
                         <span>
                           {language === "th"
                             ? "สิทธิพิเศษ & ของแถม"
@@ -444,16 +467,33 @@ export default function PricingSection({ onOpenCustomizer }: PricingSectionProps
                         </span>
                       </div>
 
-                      <div className="space-y-1.5 text-xs">
+                      <div
+                        className={
+                          isSingle
+                            ? `grid gap-2.5 ${
+                                promoList.length >= 4
+                                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                                  : "grid-cols-1 sm:grid-cols-3"
+                              }`
+                            : "space-y-1.5 text-xs"
+                        }
+                      >
                         {promoList.map((p, pIdx) => (
-                          <div key={pIdx} className="flex items-start gap-1.5">
+                          <div
+                            key={pIdx}
+                            className={`flex items-start gap-2 p-2 rounded-xl text-xs ${
+                              isSingle ? "bg-white/80 border border-amber-100" : ""
+                            }`}
+                          >
                             <CheckCircle2
-                              className={`h-3.5 w-3.5 flex-shrink-0 mt-0.5 ${
+                              className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
                                 p.highlight ? "text-pink-600" : "text-amber-600"
                               }`}
                             />
                             <div className="min-w-0">
-                              <span className="font-black text-[#1E1035]">{p.threshold}: </span>
+                              <span className="font-black text-[#1E1035] block sm:inline">
+                                {p.threshold}:{" "}
+                              </span>
                               <span
                                 className={`font-semibold ${
                                   p.highlight ? "text-pink-700 font-black" : "text-slate-700"
@@ -470,11 +510,19 @@ export default function PricingSection({ onOpenCustomizer }: PricingSectionProps
                 </div>
 
                 {/* Card CTA Footer Button */}
-                <div className="p-6 sm:p-7 pt-0 relative z-10">
+                <div className={`p-6 sm:p-8 pt-0 relative z-10 ${isSingle ? "flex flex-col sm:flex-row items-center justify-between gap-4" : ""}`}>
+                  {isSingle && (
+                    <div className="text-xs text-slate-500 font-medium hidden sm:block">
+                      ✓ Đổi mới 100% nếu có lỗi • In UV 8 màu siêu nét • Vát cạnh kim cương sáng bóng
+                    </div>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => onOpenCustomizer?.(card.id)}
-                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-pink-300/40 hover:brightness-110 active:scale-98 transition cursor-pointer"
+                    className={`flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-8 py-3.5 text-sm font-black text-white shadow-lg shadow-pink-300/40 hover:brightness-110 active:scale-98 transition cursor-pointer ${
+                      isSingle ? "w-full sm:w-auto min-w-[260px]" : "w-full"
+                    }`}
                   >
                     <span>
                       {language === "th"
