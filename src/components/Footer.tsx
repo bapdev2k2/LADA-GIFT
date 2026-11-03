@@ -85,7 +85,7 @@ const policyLinks: FooterLink[] = [
 ];
 
 const socialLinks = [
-  { label: "Facebook", icon: FacebookIcon, href: "https://facebook.com" },
+  { label: "Facebook", icon: FacebookIcon, href: "https://byvn.net/JNem" },
   { label: "Instagram", icon: InstagramIcon, href: "https://instagram.com" },
   { label: "TikTok", icon: TikTokIcon, href: "https://tiktok.com" },
 ];
@@ -245,24 +245,30 @@ export default function Footer() {
               <li className="flex items-start gap-3">
                 <Mail className="mt-0.5 h-4 w-4 flex-shrink-0 text-pink-600" />
                 <a
-                  href="mailto:ladagift.custom@gmail.com"
+                  href="mailto:ladagiftvietnam@gmail.com"
                   className="text-sm font-semibold text-slate-700 transition-colors duration-300 hover:text-pink-600"
                 >
-                  ladagift.custom@gmail.com
+                  ladagiftvietnam@gmail.com
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <Phone className="mt-0.5 h-4 w-4 flex-shrink-0 text-pink-600" />
-                <a
-                  href="tel:0987654321"
-                  className="text-sm font-semibold text-slate-700 transition-colors duration-300 hover:text-pink-600"
-                >
-                  Hotline / Zalo: 0987 654 321
-                </a>
+                <div className="flex flex-col">
+                  <a
+                    href="https://zalo.me/0366831128"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-bold text-slate-700 transition-colors duration-300 hover:text-pink-600 flex items-center gap-1.5"
+                  >
+                    <span>Hotline / Zalo:</span>
+                    <span className="text-pink-600 font-extrabold tracking-wide">0366 831 128</span>
+                  </a>
+                  <span className="text-[11px] text-slate-500 font-medium">(Bấm để chat Zalo ngay)</span>
+                </div>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-pink-600" />
-                <span className="text-sm font-semibold text-slate-700">
+                <span className="text-sm font-semibold text-slate-700 leading-relaxed">
                   {t("footer_location")}
                 </span>
               </li>

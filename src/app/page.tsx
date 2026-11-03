@@ -18,6 +18,7 @@ import SmoothScrollInit from "@/components/SmoothScrollInit";
 import SectionDivider from "@/components/SectionDivider";
 import DesignCustomizerModal from "@/components/DesignCustomizerModal";
 import ProductDetailsModal from "@/components/ProductDetailsModal";
+import FloatingContact from "@/components/FloatingContact";
 import { type Product } from "@/data/products";
 import { clearCartStorage } from "@/lib/cartStorage";
 
@@ -179,6 +180,8 @@ export default function Home() {
           handleOpenCustomizer(prod.category, size);
         }}
       />
+      {/* Floating Quick Contact Widget (Zalo, Hotline, Facebook) */}
+      <FloatingContact />
     </div>
   );
 }

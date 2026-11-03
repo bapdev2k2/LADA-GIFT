@@ -227,7 +227,7 @@ export const translations = {
     footer_link_guide: "Hướng dẫn gửi ảnh in nét",
     footer_link_shipping: "Chính sách vận chuyển",
     footer_link_privacy: "Bảo mật thông tin",
-    footer_location: "Hà Nội & TP. Hồ Chí Minh (Giao hàng toàn quốc)",
+    footer_location: "Số 32 Ngõ 292 Kim Giang, Kim Văn, Hoàng Mai, Hà Nội",
     footer_rights: "Bản quyền thuộc về LADA GIFT. Gift From The Heart.",
     footer_exclusive: "Thiết kế độc quyền từ LADA GIFT",
 
@@ -519,7 +519,7 @@ export const translations = {
     footer_link_guide: "Photo Upload Quality Guide",
     footer_link_shipping: "Shipping & Delivery Policy",
     footer_link_privacy: "Privacy Policy",
-    footer_location: "Hanoi & Ho Chi Minh City (Worldwide Shipping)",
+    footer_location: "No. 32, Alley 292 Kim Giang, Kim Van, Hoang Mai, Hanoi",
     footer_rights: "All rights reserved by LADA GIFT. Gift From The Heart.",
     footer_exclusive: "Exclusive Design by LADA GIFT",
 
@@ -811,7 +811,7 @@ export const translations = {
     footer_link_guide: "คำแนะนำการส่งไฟล์ภาพคมชัด",
     footer_link_shipping: "นโยบายการจัดส่งสินค้า",
     footer_link_privacy: "นโยบายความเป็นส่วนตัว",
-    footer_location: "ฮานอย & โฮจิมินห์ (จัดส่งทั่วประเทศและต่างประเทศ)",
+    footer_location: "เลขที่ 32 ซอย 292 คิมซาง, คิมวัน, ฮว่างมาย, ฮานอย",
     footer_rights: "สงวนลิขสิทธิ์โดย LADA GIFT. Gift From The Heart.",
     footer_exclusive: "ดีไซน์เอกสิทธิ์เฉพาะจาก LADA GIFT",
 
