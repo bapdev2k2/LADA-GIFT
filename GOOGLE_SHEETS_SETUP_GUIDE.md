@@ -1,53 +1,65 @@
-# HƯỚNG DẪN XUẤT API GOOGLE APPS SCRIPT CHO GOOGLE SHEETS LADA GIFT
+# HƯỚNG DẪN CẬP NHẬT GOOGLE APPS SCRIPT CHO GOOGLE SHEETS & GOOGLE DRIVE LADA GIFT
 
-Bảng tính của bạn: [https://docs.google.com/spreadsheets/d/1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA/edit](https://docs.google.com/spreadsheets/d/1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA/edit)  
-ID bảng tính: `1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA`
+> Bảng tính Google Sheet liên kết:  
+> [https://docs.google.com/spreadsheets/d/1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA/edit](https://docs.google.com/spreadsheets/d/1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA/edit)  
+> ID Bảng tính: `1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA`
 
 ---
 
-## BƯỚC 1: DÁN MÃ NGUỒN VÀO APPS SCRIPT TRONG GOOGLE SHEET
+## 🎯 LOGIC TỰ ĐỘNG PHÂN CHIA THƯ MỤC TRÊN GOOGLE DRIVE
 
-1. Mở trang Google Sheet của bạn qua đường link:
+Khi khách hàng chọn ảnh, loại sản phẩm, kiểu dáng và kích thước rồi đặt hàng:
+1. Hệ thống sẽ tự động tạo thư mục chính cho đơn hàng trên Google Drive:  
+   `LADA_GIFT_ORDERS / YYYY / MM / [Mã Đơn - Tên Khách Hàng]`
+2. **TỰ ĐỘNG TẠO TỪNG THƯ MỤC PHÂN LOẠI CON THEO QUY TẮC:**  
+   `[Mã Đơn] - [Loại Ảnh / Kiểu Dáng] - [Size Ảnh]`  
+   *Ví dụ minh họa thực tế:*  
+   - Thư mục: `MC-20261103-789 - Toàn thân - 5x7.5 cm` ➔ Chứa các file ảnh toàn thân  
+   - Thư mục: `MC-20261103-789 - Khuôn mặt - 5x5 cm` ➔ Chứa các file ảnh khuôn mặt  
+   - Thư mục: `MC-20261103-789 - Ảnh chữ nhật - 9x6.5 cm` ➔ Chứa các file ảnh chữ nhật  
+3. Toàn bộ file ảnh khách hàng tải lên sẽ được giải mã và lưu trữ an toàn trong đúng thư mục con phân loại đó.
+4. Tự động đẩy dữ liệu về Google Sheets:
+   - **Sheet `ORDERS`**: Thông tin người nhận, số điện thoại, địa chỉ, tổng tiền, quà tặng + **Link mở thư mục Google Drive của đơn hàng**.
+   - **Sheet `ORDER_ITEMS`**: Chi tiết từng sản phẩm + **Link xem ảnh gốc** + **Link mở thư mục con phân loại (Mã đơn-Loại-Size)**.
+
+---
+
+## 📝 CÁC BƯỚC CẬP NHẬT CODE LÊN APPS SCRIPT
+
+### Bước 1: Mở trình soạn thảo Google Apps Script
+1. Mở trang Google Sheet của bạn:  
    [https://docs.google.com/spreadsheets/d/1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA/edit](https://docs.google.com/spreadsheets/d/1uFQldyC4XyOtKXv2ZH6d7eM1eX5-GJNKY8OYR8k_yeA/edit)
-2. Trên thanh menu trên cùng, nhấn vào **Tiện ích mở rộng** (Extensions) > chọn **Apps Script**.
-3. Cửa sổ biên tập code Apps Script sẽ hiện ra.
-4. Xóa hết tất cả code mẫu có sẵn trong file `Mã.gs` (Code.gs).
-5. Mở file [google-apps-script/Code.gs](file:///C:/Users/Admin/.gemini/antigravity/scratch/hologram-print/google-apps-script/Code.gs) trong dự án này (hoặc copy từ ô code bên dưới), dán toàn bộ vào cửa sổ Apps Script.
-6. Nhấn biểu tượng **Lưu dự án** (hình chiếc đĩa mềm hoặc bấm `Ctrl + S`).
+2. Trên thanh menu trên cùng, chọn **Tiện ích mở rộng** (Extensions) ➔ **Apps Script**.
+3. Chọn toàn bộ code trong file `Mã.gs` (Code.gs) hiện tại và **Xóa đi**.
+4. Mở file [google-apps-script/Code.gs](file:///C:/Users/Admin/.gemini/antigravity/scratch/hologram-print/google-apps-script/Code.gs) trong thư mục dự án, copy toàn bộ mã nguồn mới và dán vào cửa sổ Apps Script.
+5. Nhấn **Lưu** (biểu tượng đĩa mềm hoặc phím tắt `Ctrl + S`).
 
 ---
 
-## BƯỚC 2: CHẠY THỬ ĐỂ KHỞI TẠO BẢNG TÍNH & CẤP QUYỀN
-
-1. Trên thanh công cụ của Apps Script, ở ô chọn hàm (Function dropdown), chọn hàm: **`testSpreadsheetSetup`**.
+### Bước 2: Chạy thử để tạo lại cấu trúc Sheet
+1. Trên thanh công cụ Apps Script, ở ô chọn hàm, chọn hàm: **`testCreateSampleOrder`**.
 2. Nhấn nút **Chạy (Run)**.
-3. Google sẽ hiện hộp thoại yêu cầu cấp quyền (**Cần có sự ủy quyền / Authorization Required**):
-   - Nhấn **Xem lại quyền** (Review permissions).
-   - Chọn tài khoản Google của bạn.
-   - Nhấn **Nâng cao** (Advanced) ở góc dưới bên trái.
-   - Nhấn vào dòng **Đi tới Dự án không có tiêu đề (không an toàn)** (Go to Untitled project (unsafe)).
-   - Nhấn **Cho phép** (Allow).
-4. Sau khi chạy xong, quay lại tab Google Sheet, bạn sẽ thấy script đã tự động tạo và định dạng đẹp mắt 3 Sheet:
-   - **`ORDERS`**: Quản lý thông tin đơn hàng, khách hàng, số điện thoại, trạng thái.
-   - **`ORDER_ITEMS`**: Quản lý chi tiết từng sản phẩm, size, số lượng, đơn giá, link ảnh Google Drive.
-   - **`CONFIG`**: Bảng giá và cấu hình cửa hàng LADA GIFT.
+3. Khi hoàn tất, bạn kiểm tra lại tab Google Sheet sẽ thấy:
+   - Sheet **`ORDERS`** có cột **Thư Mục Google Drive** chứa link bấm mở trực tiếp.
+   - Sheet **`ORDER_ITEMS`** có cột **Kiểu Dáng / Loại Ảnh**, **Kích Thước**, **Link Ảnh Drive**, và **Thư Mục Phân Loại (Mã-Loại-Size)**.
+   - Mở Google Drive sẽ thấy thư mục `LADA_GIFT_ORDERS` đã tự động phân nhánh thư mục con đúng theo quy tắc `Mã đơn - Loại ảnh - Size ảnh`.
 
 ---
 
-## BƯỚC 3: XUẤT RA WEB APP API URL ĐỂ KẾT NỐI VỚI WEBSITE
-
-1. Ở góc trên bên phải của màn hình Apps Script, nhấn nút màu xanh **Triển khai (Deploy)** > chọn **Triển khai mới (New deployment)**.
-2. Nhấn vào biểu tượng bánh răng ⚙️ (chọn loại triển khai) > chọn **Ứng dụng web (Web app)**.
-3. Điền các trường sau (cực kỳ quan trọng):
-   - **Mô tả (Description)**: `LADA GIFT Order API v1.0`
-   - **Thực thi dưới dạng (Execute as)**: **Tôi** (Tài khoản Google của bạn - Me)
-   - **Ai có quyền truy cập (Who has access)**: **Bất kỳ ai (Anyone)** *(Bắt buộc phải chọn Anyone để API từ website có thể gửi đơn hàng vào)*.
-4. Nhấn nút **Triển khai (Deploy)**.
-5. Google sẽ tạo ra một đường link **URL ứng dụng web (Web App URL)**, có định dạng:
+### Bước 3: Triển khai lại Web App (Quan trọng để nhận API mới)
+1. Ở góc trên bên phải màn hình Apps Script, nhấn nút xanh **Triển khai (Deploy)** ➔ chọn **Quản lý các bản triển khai (Manage deployments)**.
+2. Nhấn vào biểu tượng **Chỉnh sửa ✏️** (hình bút chì) ở bản triển khai Web App hiện tại.
+3. Ở dòng **Phiên bản (Version)**, chọn **Phiên bản mới (New version)**.
+4. Ghi mô tả: `v2.0 Auto Drive Folders`.
+5. Đảm bảo 2 dòng dưới:
+   - **Thực thi dưới dạng (Execute as)**: **Tôi (Me)**
+   - **Ai có quyền truy cập (Who has access)**: **Bất kỳ ai (Anyone)**
+6. Nhấn nút **Triển khai (Deploy)**.
+7. Copy đường link **URL ứng dụng web** (Web app URL) có dạng:
    ```
    https://script.google.com/macros/s/AKfycbx.../exec
    ```
-6. Nhấn nút **Sao chép (Copy)** đường link này và gửi lại cho tôi, hoặc dán trực tiếp vào file `.env.local` của dự án:
+8. Gửi lại đường link này vào đoạn chat để tôi cập nhật vào file `.env.local` cho bạn, hoặc bạn có thể tự dán vào file `.env.local` theo cú pháp:
    ```env
    GOOGLE_SCRIPT_WEBAPP_URL=https://script.google.com/macros/s/AKfycbx.../exec
    ```

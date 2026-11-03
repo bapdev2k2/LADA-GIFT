@@ -216,6 +216,7 @@ export default function DesignCustomizerModal({
     orderId: string;
     totalPrice: number;
     items: CartItem[];
+    driveFolderUrl?: string;
   } | null>(null);
   const [copiedOrderId, setCopiedOrderId] = useState(false);
 
@@ -575,6 +576,7 @@ export default function DesignCustomizerModal({
           orderId: result.orderId,
           totalPrice: result.totalPrice || totals.totalPrice,
           items: [...cartItems],
+          driveFolderUrl: result.driveFolderUrl,
         });
 
         setCartItems([]);
@@ -756,6 +758,19 @@ export default function DesignCustomizerModal({
                     {formatPrice(orderSuccessData.totalPrice)}
                   </span>
                 </div>
+
+                {orderSuccessData.driveFolderUrl && (
+                  <div className="pt-2 text-center">
+                    <a
+                      href={orderSuccessData.driveFolderUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 underline"
+                    >
+                      📁 Mở thư mục Google Drive của đơn hàng
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
