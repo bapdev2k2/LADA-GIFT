@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback, useId } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -21,6 +21,11 @@ import {
   Heart,
   ChevronRight,
   ShieldCheck,
+  Gift,
+  Smile,
+  User,
+  Square,
+  RectangleHorizontal,
 } from "lucide-react";
 import { fireHologramConfetti } from "@/lib/confetti";
 import { formatPrice } from "@/data/products";
@@ -37,7 +42,12 @@ import {
   calculateItemPrice,
   isValidVietnamPhone,
   PRODUCT_CONFIGS,
-  SIZE_CONFIGS,
+  PRODUCT_PRICING,
+  STYLE_DEFINITIONS,
+  getSizeOptionsForProduct,
+  ProductType,
+  StyleType,
+  SizeKey,
 } from "@/lib/orderPricing";
 import { useLanguage } from "@/lib/i18n";
 
@@ -80,45 +90,39 @@ const samplePresets = [
   },
 ];
 
-const productTypesList = [
+const productTypesList: Array<{
+  id: ProductType;
+  basePrice: number;
+}> = [
   {
-    id: "keychain" as const,
-    name: "Móc khóa mica",
-    tagline: "Khoen kim loại treo chìa khóa",
-    basePrice: 35000,
+    id: "mica-magnet",
+    basePrice: 17000,
   },
   {
-    id: "magnet" as const,
-    name: "Nam châm in hình",
-    tagline: "Dán tủ lạnh, bảng từ, case PC",
+    id: "keychain",
+    basePrice: 20000,
+  },
+  {
+    id: "magnet",
     basePrice: 25000,
   },
-  {
-    id: "mica-magnet" as const,
-    name: "Mica nam châm",
-    tagline: "Vát CNC kim cương + nam châm",
-    basePrice: 45000,
-  },
-];
-
-const sizeOptionsList = [
-  { id: "S" as const, label: "Size S (7.5 cm)", dimension: "7.5 cm", priceOffset: 0 },
-  { id: "L" as const, label: "Size L (10 cm)", dimension: "10 cm", priceOffset: 10000 },
-  { id: "XL" as const, label: "Size XL (15 cm)", dimension: "15 cm", priceOffset: 30000 },
 ];
 
 export default function DesignCustomizerModal({
   isOpen,
   onClose,
-  initialProductType = "keychain",
-  initialSize = "L",
+  initialProductType = "mica-magnet",
+  initialSize = "S",
   onAddToCart,
 }: DesignCustomizerModalProps) {
+  const { t, language } = useLanguage();
+
   // Current active editor configuration
-  const [currentType, setCurrentType] = useState<"keychain" | "magnet" | "mica-magnet">(
-    initialProductType
+  const [currentType, setCurrentType] = useState<ProductType>(initialProductType);
+  const [currentStyle, setCurrentStyle] = useState<StyleType>(
+    PRODUCT_PRICING[initialProductType]?.defaultStyle || "face"
   );
-  const [currentSize, setCurrentSize] = useState<"S" | "L" | "XL">(initialSize);
+  const [currentSize, setCurrentSize] = useState<string>("S");
   const [currentImage, setCurrentImage] = useState<string>(samplePresets[0].url);
   const [currentImageName, setCurrentImageName] = useState<string>("lada-gift-logo.jpg");
   const [currentQty, setCurrentQty] = useState(1);
@@ -126,9 +130,7 @@ export default function DesignCustomizerModal({
   // Editing existing item ID (if editing an existing item from cart)
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
-  const { t, language } = useLanguage();
-
-  const getProductTypeName = (type: "keychain" | "magnet" | "mica-magnet") => {
+  const getProductTypeName = (type: ProductType) => {
     switch (type) {
       case "keychain":
         return t("cat_keychain");
@@ -141,7 +143,7 @@ export default function DesignCustomizerModal({
     }
   };
 
-  const getProductTypeTagline = (type: "keychain" | "magnet" | "mica-magnet") => {
+  const getProductTypeTagline = (type: ProductType) => {
     switch (type) {
       case "keychain":
         return t("cfg_tagline_keychain");
@@ -152,6 +154,38 @@ export default function DesignCustomizerModal({
       default:
         return PRODUCT_CONFIGS[type]?.tagline || "";
     }
+  };
+
+  const getStyleName = (style: StyleType) => {
+    const meta = STYLE_DEFINITIONS[style];
+    if (!meta) return style;
+    return language === "th" ? meta.labelTh : language === "en" ? meta.labelEn : meta.labelVi;
+  };
+
+  // Promotion text for current product
+  const getProductPromoHint = (type: ProductType) => {
+    if (type === "mica-magnet") {
+      return language === "th"
+        ? "🎁 สั่ง 15 ชิ้น แถม 1 พวงกุญแจ • สั่ง 30 ชิ้น แถม 2 พวงกุญแจ + ส่งฟรี • สั่ง 50 ชิ้น แถม 5 พวงกุญแจ + ส่งฟรี (ขั้นต่ำ 5 ชิ้น)"
+        : language === "en"
+        ? "🎁 Order 15+: Free 1 Keychain • Order 30+: Free 2 Keychains + Freeship • Order 50+: Free 5 Keychains + Freeship (Min 5 pcs)"
+        : "🎁 Đặt 15c: Tặng 1 Móc Khóa • Đặt 30c: Tặng 2 Móc Khóa + Freeship • Đặt 50c: Tặng 5 Móc Khóa + Freeship (Tối thiểu 5 cái)";
+    }
+    if (type === "keychain") {
+      return language === "th"
+        ? "🎁 สั่ง 15 ชิ้น แถม 1 พวงกุญแจ • สั่ง 30 ชิ้น ลด 30k + ส่งฟรี • สั่ง 50 ชิ้น ลด 60k + ส่งฟรี"
+        : language === "en"
+        ? "🎁 Order 15+: Free 1 Keychain • Order 30+: Save 30k + Freeship • Order 50+: Save 60k + Freeship"
+        : "🎁 Đặt 15c: Tặng 1 Móc Khóa • Đặt 30c: Giảm 30.000đ + Freeship • Đặt 50c: Giảm 60.000đ + Freeship";
+    }
+    if (type === "magnet") {
+      return language === "th"
+        ? "🔥 คอมโบ 6 ภาพ: 120k • 15 ภาพ: 300k (แถม 1 ภาพ) • 30 ภาพ: 600k (แถม 2 ภาพ + ส่งฟรี) • 50 ภาพ: 1.000k (แถม 4 ภาพ + ส่งฟรี)"
+        : language === "en"
+        ? "🔥 Combo 6: 120k • Combo 15: 300k (+free 1 photo) • Combo 30: 600k (+free 2 photos + Freeship) • Combo 50: 1,000k (+free 4 photos + Freeship)"
+        : "🔥 Combo 6 ảnh: 120k • Combo 15 ảnh: 300k (tặng 1 ảnh) • Combo 30 ảnh: 600k (tặng 2 ảnh + Freeship) • Combo 50 ảnh: 1.000.000đ (tặng 4 ảnh + Freeship)";
+    }
+    return "";
   };
 
   // Multi-Product Cart Items list
@@ -195,20 +229,18 @@ export default function DesignCustomizerModal({
   const replacingItemIdRef = useRef<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Mỗi khi loading lại trang web: Xóa sạch thông tin cũ trong giỏ hàng và biểu mẫu (bắt đầu giỏ hàng trống 0 sản phẩm)
+  // Clear cart whenever opening or reload
   useEffect(() => {
     clearCartStorage();
     setCartItems([]);
     setActivePreviewIndex(0);
-
-    // Xóa sạch thông tin khách hàng cũ
     setCustomerName("");
     setCustomerPhone("");
     setCustomerAddress("");
     setCustomerNote("");
   }, [initialProductType, initialSize]);
 
-  // Synchronize cart changes to LocalStorage
+  // Save cart changes
   useEffect(() => {
     if (cartItems.length > 0) {
       saveCartToStorage(cartItems);
@@ -217,14 +249,48 @@ export default function DesignCustomizerModal({
 
   // Handle incoming props changes
   useEffect(() => {
-    if (initialProductType) setCurrentType(initialProductType);
-    if (initialSize) setCurrentSize(initialSize);
-  }, [initialProductType, initialSize]);
+    if (initialProductType) {
+      setCurrentType(initialProductType);
+      const defStyle = PRODUCT_PRICING[initialProductType]?.defaultStyle || "face";
+      setCurrentStyle(defStyle);
+      const sizes = getSizeOptionsForProduct(initialProductType, defStyle);
+      if (sizes.length > 0) {
+        setCurrentSize(sizes[0].id);
+      }
+    }
+  }, [initialProductType]);
+
+  // Handle product type change
+  const handleSelectProductType = (type: ProductType) => {
+    setCurrentType(type);
+    const defStyle = PRODUCT_PRICING[type]?.defaultStyle || "face";
+    setCurrentStyle(defStyle);
+    const sizes = getSizeOptionsForProduct(type, defStyle);
+    if (sizes.length > 0) {
+      setCurrentSize(sizes[0].id);
+    }
+  };
+
+  // Handle style change
+  const handleSelectStyle = (style: StyleType) => {
+    setCurrentStyle(style);
+    const sizes = getSizeOptionsForProduct(currentType, style);
+    if (sizes.length > 0) {
+      const exists = sizes.some((s) => s.id === currentSize);
+      if (!exists) {
+        setCurrentSize(sizes[0].id);
+      }
+    }
+  };
+
+  // Active available sizes for currentType & currentStyle
+  const availableSizes = getSizeOptionsForProduct(currentType, currentStyle);
 
   // 3D Preview calculations based on active item
   const activeItem: CartItem | undefined =
     cartItems[activePreviewIndex] || cartItems[0];
-  const previewType = activeItem ? activeItem.productType : currentType;
+  const previewType = activeItem ? (activeItem.productType as ProductType) : currentType;
+  const previewStyle = activeItem ? (activeItem.styleType as StyleType) : currentStyle;
   const previewSize = activeItem ? activeItem.size : currentSize;
   const previewImage = activeItem ? activeItem.imagePreview : currentImage;
 
@@ -250,7 +316,6 @@ export default function DesignCustomizerModal({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file size (max 20MB)
       if (file.size > 20 * 1024 * 1024) {
         alert("Dung lượng ảnh quá lớn (vui lòng chọn ảnh dưới 20MB)!");
         return;
@@ -267,7 +332,7 @@ export default function DesignCustomizerModal({
     }
   };
 
-  // Handle replacing image for a specific existing item in cart
+  // Handle replacing image for an existing item in cart
   const handleReplaceItemFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     const targetItemId = replacingItemIdRef.current;
@@ -295,16 +360,16 @@ export default function DesignCustomizerModal({
 
   // Add current editor item to cart (or update if editing)
   const handleAddOrUpdateItem = () => {
-    const { unitPrice, subtotal } = calculateItemPrice(
+    const { unitPrice, subtotal, sizeDimension } = calculateItemPrice(
       currentType,
       currentSize,
-      currentQty
+      currentQty,
+      currentStyle
     );
     const prodName = getProductTypeName(currentType);
-    const sizeDim = SIZE_CONFIGS[currentSize]?.dimension || "10 cm";
+    const styleLabel = getStyleName(currentStyle);
 
     if (editingItemId) {
-      // Update existing item
       setCartItems((prev) =>
         prev.map((it) =>
           it.id === editingItemId
@@ -312,8 +377,10 @@ export default function DesignCustomizerModal({
                 ...it,
                 productType: currentType,
                 productName: prodName,
+                styleType: currentStyle,
+                styleLabel: styleLabel,
                 size: currentSize,
-                sizeValue: sizeDim,
+                sizeValue: sizeDimension,
                 quantity: currentQty,
                 imagePreview: currentImage,
                 imageName: currentImageName,
@@ -325,13 +392,14 @@ export default function DesignCustomizerModal({
       );
       setEditingItemId(null);
     } else {
-      // Create new item
       const newItem: CartItem = {
         id: `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         productType: currentType,
         productName: prodName,
+        styleType: currentStyle,
+        styleLabel: styleLabel,
         size: currentSize,
-        sizeValue: sizeDim,
+        sizeValue: sizeDimension,
         quantity: currentQty,
         imagePreview: currentImage,
         imageName: currentImageName,
@@ -339,10 +407,9 @@ export default function DesignCustomizerModal({
         subtotal,
       };
       setCartItems((prev) => [...prev, newItem]);
-      setActivePreviewIndex(cartItems.length); // point preview to new item
+      setActivePreviewIndex(cartItems.length);
     }
 
-    // Reset current quantity to 1 for the next item
     setCurrentQty(1);
   };
 
@@ -352,10 +419,17 @@ export default function DesignCustomizerModal({
       prev.map((it) => {
         if (it.id === id) {
           const newQty = Math.max(1, it.quantity + delta);
+          const { unitPrice, subtotal } = calculateItemPrice(
+            it.productType,
+            it.size,
+            newQty,
+            it.styleType
+          );
           return {
             ...it,
             quantity: newQty,
-            subtotal: it.unitPrice * newQty,
+            unitPrice,
+            subtotal,
           };
         }
         return it;
@@ -372,7 +446,10 @@ export default function DesignCustomizerModal({
   // Load an item back into editor for updating
   const handleEditItem = (item: CartItem) => {
     setEditingItemId(item.id);
-    setCurrentType(item.productType);
+    setCurrentType(item.productType as ProductType);
+    if (item.styleType) {
+      setCurrentStyle(item.styleType as StyleType);
+    }
     setCurrentSize(item.size);
     setCurrentImage(item.imagePreview);
     setCurrentImageName(item.imageName);
@@ -443,6 +520,22 @@ export default function DesignCustomizerModal({
       return;
     }
 
+    // Check minimum order quantity for mica-magnet (Min 5 pcs)
+    const micaMagnetTotal = cartItems
+      .filter((it) => it.productType === "mica-magnet")
+      .reduce((sum, it) => sum + it.quantity, 0);
+
+    if (micaMagnetTotal > 0 && micaMagnetTotal < 5) {
+      alert(
+        language === "th"
+          ? "สินค้าแม่เหล็กไมก้าต้องการขั้นต่ำ 5 ชิ้นขึ้นไป!"
+          : language === "en"
+          ? "Mica magnets require a minimum order of 5 pieces!"
+          : "Sản phẩm Ảnh Mica Nam Châm có số lượng đặt hàng tối thiểu là 5 cái theo bảng giá! Vui lòng tăng số lượng để tiếp tục."
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Save customer draft info
@@ -475,23 +568,17 @@ export default function DesignCustomizerModal({
       const result = await response.json();
 
       if (result.success) {
-        // Trigger celebratory confetti
         fireHologramConfetti();
-
-        // Clear local storage cart
         clearCartStorage();
 
-        // Save order success data
         setOrderSuccessData({
           orderId: result.orderId,
           totalPrice: result.totalPrice || totals.totalPrice,
           items: [...cartItems],
         });
 
-        // Clear current items state
         setCartItems([]);
 
-        // Notify parent if listener exists
         if (onAddToCart) {
           onAddToCart({
             orderId: result.orderId,
@@ -533,6 +620,8 @@ export default function DesignCustomizerModal({
 
   if (!isOpen) return null;
 
+  const currentItemPricing = calculateItemPrice(currentType, currentSize, currentQty, currentStyle);
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
@@ -545,47 +634,41 @@ export default function DesignCustomizerModal({
           className="fixed inset-0 bg-slate-900/45 backdrop-blur-md"
         />
 
-        {/* Modal Window - THEME ĐỒNG BỘ NỀN PASTEL HOLOGRAM CỦA LADA GIFT */}
+        {/* Modal Window */}
         <motion.div
           initial={{ opacity: 0, scale: 0.94, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 20 }}
-          transition={{ type: "spring", damping: 25, stiffness: 260 }}
-          className="relative z-10 w-full max-w-6xl rounded-3xl border-2 border-white/90 bg-gradient-to-br from-white/95 via-pink-50/90 to-sky-50/95 shadow-[0_25px_70px_rgba(244,114,182,0.35)] backdrop-blur-2xl text-[#1E1035] overflow-hidden my-auto"
+          className="relative z-10 w-full max-w-5xl rounded-3xl bg-white/95 border-2 border-pink-200 shadow-2xl backdrop-blur-2xl overflow-hidden my-auto"
         >
           {/* Header Bar */}
-          <div className="flex items-center justify-between border-b border-pink-200/80 px-6 py-4 bg-white/70">
+          <div className="flex items-center justify-between border-b border-pink-200/80 px-6 py-4 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-sky-500/10">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full overflow-hidden border border-pink-300 shadow-md flex-shrink-0">
-                <img
-                  src="/lada-gift-logo.jpg"
-                  alt="LADA GIFT Logo"
-                  className="h-full w-full object-cover"
-                />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-pink-500 to-purple-600 text-white shadow-md shadow-pink-300/50">
+                <Sparkles className="h-5 w-5" />
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-black text-[#1E1035] flex items-center gap-2">
                   <span>{t("modal_title")}</span>
-                  <span className="hidden sm:inline-block rounded-full bg-pink-100 border border-pink-300 px-2.5 py-0.5 text-[10px] font-black uppercase text-pink-700">
+                  <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-black text-pink-700 uppercase tracking-wider">
                     {t("modal_badge")}
                   </span>
                 </h3>
-                <p className="text-[11px] font-semibold text-slate-500">
+                <p className="text-xs text-slate-500 font-medium">
                   {t("modal_sub")}
                 </p>
               </div>
             </div>
 
             <button
-              type="button"
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 border border-pink-200 text-slate-500 hover:text-pink-600 hover:bg-white hover:border-pink-300 transition shadow-sm cursor-pointer"
+              className="rounded-full p-2 text-slate-400 hover:bg-pink-100 hover:text-slate-700 transition cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          {/* Hidden file input for replacing an existing cart item's image */}
+          {/* Hidden file input for changing existing item's image */}
           <input
             ref={replaceItemFileInputRef}
             type="file"
@@ -594,36 +677,28 @@ export default function DesignCustomizerModal({
             className="hidden"
           />
 
-          {/* MAIN MODAL CONTENT */}
           {orderSuccessData ? (
-            /* ================================================================= */
-            /* SUCCESS CONFIRMATION VIEW                                         */
-            /* ================================================================= */
-            <div className="p-6 sm:p-10 text-center max-h-[80vh] overflow-y-auto">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 220, damping: 15 }}
-                className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-tr from-pink-500 via-purple-600 to-sky-500 shadow-xl shadow-pink-300/50"
-              >
-                <Check className="h-10 w-10 text-white stroke-[3]" />
-              </motion.div>
+            /* Order Success View */
+            <div className="p-8 sm:p-12 text-center max-w-xl mx-auto space-y-6">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-lg shadow-emerald-200">
+                <Check className="h-10 w-10 stroke-[3]" />
+              </div>
 
-              <h4 className="mt-5 text-2xl sm:text-3xl font-black text-[#180D2B]">
-                {t("success_title")}
-              </h4>
-              <p className="mx-auto mt-2 max-w-lg text-sm font-semibold text-slate-600 leading-relaxed">
-                {t("success_desc")}
-              </p>
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-black text-[#1E1035]">
+                  {t("success_title")}
+                </h3>
+                <p className="text-sm text-slate-600 mt-2 font-medium">
+                  {t("success_desc")}
+                </p>
+              </div>
 
-              {/* Order Info Summary Card */}
-              <div className="mx-auto mt-6 max-w-xl rounded-2xl border-2 border-pink-200/90 bg-white/90 p-5 text-left shadow-lg shadow-pink-100/50">
+              {/* Order summary card */}
+              <div className="rounded-2xl border-2 border-pink-200 bg-white/90 p-5 text-left shadow-sm space-y-3">
                 <div className="flex items-center justify-between border-b border-pink-100 pb-3">
                   <div>
-                    <span className="text-xs font-bold text-slate-500 uppercase">{t("success_order_id")}:</span>
-                    <div className="text-base font-black text-pink-600 font-mono tracking-wider">
-                      {orderSuccessData.orderId}
-                    </div>
+                    <span className="text-[11px] font-bold text-slate-500 uppercase">{t("success_order_id")}:</span>
+                    <p className="text-base font-black text-pink-600 font-mono">{orderSuccessData.orderId}</p>
                   </div>
                   <button
                     type="button"
@@ -644,9 +719,8 @@ export default function DesignCustomizerModal({
                   </button>
                 </div>
 
-                {/* Items in completed order */}
                 <div className="py-3 divide-y divide-slate-100 max-h-56 overflow-y-auto">
-                  {orderSuccessData.items.map((item, idx) => (
+                  {orderSuccessData.items.map((item) => (
                     <div key={item.id} className="py-2.5 flex items-center justify-between gap-3 text-xs">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <img
@@ -655,7 +729,14 @@ export default function DesignCustomizerModal({
                           className="h-10 w-10 rounded-xl object-cover border border-slate-200 flex-shrink-0"
                         />
                         <div className="min-w-0">
-                          <p className="font-black text-[#1E1035] truncate">{item.productName}</p>
+                          <p className="font-black text-[#1E1035] truncate">
+                            {item.productName}
+                            {item.styleLabel && (
+                              <span className="ml-1 text-[10px] text-pink-600 font-bold">
+                                ({item.styleLabel})
+                              </span>
+                            )}
+                          </p>
                           <p className="text-[11px] font-semibold text-slate-500">
                             Size: <span className="font-bold text-pink-600">{item.sizeValue}</span> • Số lượng:{" "}
                             <span className="font-bold text-purple-700">{item.quantity}</span>
@@ -669,7 +750,6 @@ export default function DesignCustomizerModal({
                   ))}
                 </div>
 
-                {/* Total Payment */}
                 <div className="flex items-center justify-between pt-3 border-t border-pink-100">
                   <span className="text-xs font-black text-slate-700 uppercase">{t("success_total")}:</span>
                   <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 font-mono">
@@ -678,7 +758,6 @@ export default function DesignCustomizerModal({
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
                 <button
                   type="button"
@@ -693,13 +772,10 @@ export default function DesignCustomizerModal({
               </div>
             </div>
           ) : (
-            /* ================================================================= */
-            /* 2-COLUMN MULTI-PRODUCT STUDIO & CART INTERFACE                    */
-            /* ================================================================= */
+            /* 2-Column Customizer & Cart Studio */
             <div className="grid grid-cols-1 lg:grid-cols-12 max-h-[82vh] overflow-y-auto">
-              {/* LEFT COLUMN: 3D HOLOGRAPHIC INTERACTIVE STAGE */}
+              {/* LEFT COLUMN: 3D HOLOGRAPHIC PREVIEW */}
               <div className="lg:col-span-5 bg-gradient-to-b from-pink-100/50 via-white/80 to-sky-100/50 p-6 flex flex-col items-center justify-between border-b lg:border-b-0 lg:border-r border-pink-200/70 relative select-none">
-                {/* Dreamy Ambient Glow Aura */}
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(244,114,182,0.22),_transparent_70%)] pointer-events-none" />
 
                 <div className="w-full flex items-center justify-between text-xs text-slate-600 z-10 font-bold">
@@ -709,7 +785,7 @@ export default function DesignCustomizerModal({
                   <span className="italic text-slate-500 text-[11px]">{t("modal_drag_rotate")}</span>
                 </div>
 
-                {/* 3D Acrylic Object Container */}
+                {/* 3D Acrylic Preview */}
                 <div
                   ref={previewRef}
                   onMouseMove={handleMouseMove}
@@ -738,43 +814,43 @@ export default function DesignCustomizerModal({
                     style={{ transformStyle: "preserve-3d" }}
                     className="relative flex flex-col items-center"
                   >
-                    {/* Metal Ring & Keychain connector if keychain */}
+                    {/* Metal Ring & Keychain connector */}
                     {previewType === "keychain" && (
                       <div className="flex flex-col items-center -mb-2 z-20">
-                        {/* Heart or round metal ring */}
                         <div className="h-10 w-10 rounded-full border-[3.5px] border-slate-300 shadow-md bg-gradient-to-tr from-slate-200 via-white to-slate-400 flex items-center justify-center">
                           <Heart className="h-4 w-4 text-pink-500 fill-pink-500 animate-pulse" />
                         </div>
-                        {/* Chain link */}
                         <div className="h-3.5 w-2 rounded-full border border-slate-300 bg-slate-200 -mt-1 shadow-sm" />
                       </div>
                     )}
 
                     {/* Acrylic Body Container */}
                     <div
-                      className={`relative overflow-hidden rounded-2xl border-[3px] border-white/95 shadow-[0_20px_50px_rgba(244,114,182,0.35)] backdrop-blur-md transition-all duration-300 ${
-                        previewSize === "S"
-                          ? "w-44 h-56"
-                          : previewSize === "L"
-                          ? "w-52 h-64"
-                          : "w-60 h-76"
+                      className={`relative overflow-hidden border-[3px] border-white/95 shadow-[0_20px_50px_rgba(244,114,182,0.35)] backdrop-blur-md transition-all duration-300 ${
+                        previewStyle === "square"
+                          ? "w-52 h-52 rounded-2xl"
+                          : previewStyle === "rect"
+                          ? "w-48 h-64 rounded-xl"
+                          : previewStyle === "face"
+                          ? "w-52 h-52 rounded-3xl"
+                          : "w-48 h-64 rounded-3xl"
                       }`}
                       style={{
                         background:
                           "linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.3) 100%)",
                       }}
                     >
-                      {/* Customer Custom Image Layer */}
+                      {/* Image Layer */}
                       <img
                         src={previewImage}
                         alt="Preview"
                         className="h-full w-full object-cover object-center"
                       />
 
-                      {/* Mica Gloss Reflection Overlay */}
+                      {/* Holographic Gloss Reflection */}
                       <div className="pointer-events-none absolute inset-0 opacity-45 mix-blend-color-dodge bg-gradient-to-tr from-cyan-400/30 via-purple-500/25 to-pink-500/30" />
 
-                      {/* Moving light sweep shine */}
+                      {/* Moving shine */}
                       <div
                         className="pointer-events-none absolute inset-0 opacity-45 mix-blend-overlay"
                         style={{
@@ -784,10 +860,10 @@ export default function DesignCustomizerModal({
                         }}
                       />
 
-                      {/* Diamond CNC bevel edge highlight */}
+                      {/* CNC Bevel edge stroke */}
                       <div className="pointer-events-none absolute inset-[3px] rounded-xl border border-white/70" />
 
-                      {/* Magnet badge indicator if magnet type */}
+                      {/* Magnet badge indicator */}
                       {previewType !== "keychain" && (
                         <div className="absolute top-2 right-2 rounded-md bg-white/90 backdrop-blur-md px-2 py-0.5 text-[9px] font-black tracking-wider text-pink-700 border border-pink-200 shadow-sm">
                           {previewType === "magnet" ? t("modal_badge_magnet") : t("modal_badge_mica_magnet")}
@@ -795,12 +871,12 @@ export default function DesignCustomizerModal({
                       )}
                     </div>
 
-                    {/* Acrylic 3D Thickness drop shadow simulation */}
+                    {/* Drop shadow */}
                     <div className="mt-3 h-3 w-40 rounded-full bg-pink-400/25 blur-md" />
                   </motion.div>
                 </div>
 
-                {/* Bottom preview controls & status */}
+                {/* Bottom preview controls */}
                 <div className="w-full flex items-center justify-between text-xs text-slate-600 border-t border-pink-200/80 pt-3">
                   <button
                     type="button"
@@ -811,25 +887,21 @@ export default function DesignCustomizerModal({
                     {autoRotate ? t("modal_autorotate_off") : t("modal_autorotate_on")}
                   </button>
                   <span className="text-[11px] font-bold text-slate-500 font-mono">
-                    {activeItem ? t("modal_viewing_from_cart") : t("modal_previewing_design")} {getProductTypeName(previewType)} ({previewSize})
+                    {getProductTypeName(previewType)} • {getStyleName(previewStyle)} ({previewSize})
                   </span>
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: MULTI-PRODUCT CART & CHECKOUT CONTROLS */}
+              {/* RIGHT COLUMN: CONFIGURATOR & CART */}
               <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-6 bg-white/60">
                 <div className="space-y-6">
-                  {/* ========================================================= */}
-                  {/* 1. PRODUCT CONFIGURATOR SECTION                           */}
-                  {/* ========================================================= */}
+                  {/* 1. CONFIGURATOR BOX */}
                   <div className="rounded-2xl border-2 border-pink-200/80 bg-white/80 p-4 sm:p-5 shadow-sm space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-black uppercase tracking-wider text-pink-700 flex items-center gap-1.5">
                         <Sparkles className="h-3.5 w-3.5 text-pink-500" />
                         <span>
-                          {editingItemId
-                            ? t("cfg_edit_title")
-                            : t("cfg_title")}
+                          {editingItemId ? t("cfg_edit_title") : t("cfg_title")}
                         </span>
                       </h4>
                       {editingItemId && (
@@ -843,7 +915,7 @@ export default function DesignCustomizerModal({
                       )}
                     </div>
 
-                    {/* Choose Product Type */}
+                    {/* Step 1: Choose Product Type */}
                     <div>
                       <label className="text-[11px] font-black uppercase text-slate-600 mb-1.5 block">
                         {t("cfg_step_1")}
@@ -855,7 +927,7 @@ export default function DesignCustomizerModal({
                             <button
                               key={tItem.id}
                               type="button"
-                              onClick={() => setCurrentType(tItem.id)}
+                              onClick={() => handleSelectProductType(tItem.id)}
                               className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition duration-200 cursor-pointer ${
                                 isSelected
                                   ? "border-2 border-pink-500 bg-pink-50/90 text-[#1E1035] shadow-md shadow-pink-200/40"
@@ -875,28 +947,39 @@ export default function DesignCustomizerModal({
                       </div>
                     </div>
 
-                    {/* Choose Size */}
+                    {/* Step 2: Choose Cutout / Style Type */}
                     <div>
                       <label className="text-[11px] font-black uppercase text-slate-600 mb-1.5 block">
-                        {t("cfg_step_2")}
+                        {language === "th"
+                          ? "2. เลือกรูปแบบดีไซน์:"
+                          : language === "en"
+                          ? "2. Choose Design / Cutout Style:"
+                          : "2. Chọn kiểu dáng thiết kế:"}
                       </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {sizeOptionsList.map((s) => {
-                          const isSelected = currentSize === s.id;
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {PRODUCT_PRICING[currentType].availableStyles.map((sKey) => {
+                          const isSelected = currentStyle === sKey;
+                          const meta = STYLE_DEFINITIONS[sKey];
+                          const sTitle = language === "th" ? meta.labelTh : language === "en" ? meta.labelEn : meta.labelVi;
                           return (
                             <button
-                              key={s.id}
+                              key={sKey}
                               type="button"
-                              onClick={() => setCurrentSize(s.id)}
-                              className={`p-2 rounded-xl border text-center transition duration-200 cursor-pointer ${
+                              onClick={() => handleSelectStyle(sKey)}
+                              className={`p-2.5 rounded-xl border text-left transition cursor-pointer relative ${
                                 isSelected
-                                  ? "border-2 border-purple-500 bg-purple-50/90 text-[#1E1035] shadow-md shadow-purple-200/40"
+                                  ? "border-2 border-purple-500 bg-purple-50/90 text-[#1E1035] shadow-sm shadow-purple-200/40"
                                   : "border-slate-200 bg-white/90 text-slate-600 hover:border-purple-300 hover:bg-white"
                               }`}
                             >
-                              <div className="text-xs font-black text-[#1E1035]">{s.label}</div>
-                              <div className="text-[10px] font-semibold text-slate-500 mt-0.5">
-                                {s.priceOffset > 0 ? `+${formatPrice(s.priceOffset)}` : t("cfg_base_price")}
+                              {meta.badge && (
+                                <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[9px] font-black rounded-full shadow-xs">
+                                  {meta.badge}
+                                </span>
+                              )}
+                              <div className="text-xs font-black text-[#1E1035]">{sTitle}</div>
+                              <div className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
+                                {meta.descriptionVi}
                               </div>
                             </button>
                           );
@@ -904,7 +987,40 @@ export default function DesignCustomizerModal({
                       </div>
                     </div>
 
-                    {/* Upload or Pick Image */}
+                    {/* Step 3: Choose Size & Price */}
+                    <div>
+                      <label className="text-[11px] font-black uppercase text-slate-600 mb-1.5 block">
+                        {language === "th"
+                          ? "3. Chọn kích thước & Giá in:"
+                          : language === "en"
+                          ? "3. Choose Size & Print Price:"
+                          : "3. Chọn kích thước & Báo giá:"}
+                      </label>
+                      <div className={`grid gap-2 ${availableSizes.length > 2 ? "grid-cols-3" : "grid-cols-2"}`}>
+                        {availableSizes.map((s) => {
+                          const isSelected = currentSize === s.id;
+                          return (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => setCurrentSize(s.id)}
+                              className={`p-2.5 rounded-xl border text-center transition duration-200 cursor-pointer ${
+                                isSelected
+                                  ? "border-2 border-pink-500 bg-pink-50/90 text-[#1E1035] shadow-md shadow-pink-200/40"
+                                  : "border-slate-200 bg-white/90 text-slate-600 hover:border-pink-300 hover:bg-white"
+                              }`}
+                            >
+                              <div className="text-xs font-black text-[#1E1035]">{s.label}</div>
+                              <div className="text-xs font-black text-pink-600 font-mono mt-0.5">
+                                {formatPrice(s.price)}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Step 4: Upload or Pick Image */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-[11px] font-black uppercase text-slate-600">
@@ -927,11 +1043,13 @@ export default function DesignCustomizerModal({
                         className="hidden"
                       />
 
-                      {/* Presets and Upload Preview */}
                       <div className="flex items-center gap-2 overflow-x-auto pb-1">
                         {samplePresets.map((preset) => {
                           const isSelected = currentImage === preset.url;
-                          const displayName = preset.presetKey && (t as any)(preset.presetKey) ? t(preset.presetKey) : preset.name;
+                          const displayName =
+                            preset.presetKey && (t as any)(preset.presetKey)
+                              ? t(preset.presetKey)
+                              : preset.name;
                           return (
                             <button
                               key={preset.name}
@@ -958,6 +1076,14 @@ export default function DesignCustomizerModal({
                       </div>
                     </div>
 
+                    {/* Promotion perk notice */}
+                    <div className="rounded-xl bg-amber-50/90 border border-amber-200 p-2.5 flex items-start gap-2">
+                      <Gift className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-[11px] font-bold text-amber-800 leading-snug">
+                        {getProductPromoHint(currentType)}
+                      </p>
+                    </div>
+
                     {/* Quantity & Add to Cart button */}
                     <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
                       <div className="flex items-center gap-2">
@@ -982,7 +1108,7 @@ export default function DesignCustomizerModal({
                           </button>
                         </div>
                         <span className="text-xs font-black text-pink-600 font-mono ml-1">
-                          = {formatPrice(calculateItemPrice(currentType, currentSize, currentQty).subtotal)}
+                          = {formatPrice(currentItemPricing.subtotal)}
                         </span>
                       </div>
 
@@ -993,25 +1119,25 @@ export default function DesignCustomizerModal({
                       >
                         <Plus className="h-3.5 w-3.5 stroke-[3]" />
                         <span>
-                          {editingItemId
-                            ? t("cfg_update_btn")
-                            : t("cfg_add_btn")}
+                          {editingItemId ? t("cfg_update_btn") : t("cfg_add_btn")}
                         </span>
                       </button>
                     </div>
                   </div>
 
-                  {/* ========================================================= */}
-                  {/* 2. MULTI-ITEM CART LIST SECTION                           */}
-                  {/* ========================================================= */}
+                  {/* 2. MULTI-ITEM CART LIST */}
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-black uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
                         <ShoppingBag className="h-3.5 w-3.5" />
-                        <span>{t("cart_heading")} ({cartItems.length} {t("form_summary_lines")})</span>
+                        <span>
+                          {t("cart_heading")} ({cartItems.length} {t("form_summary_lines")})
+                        </span>
                       </label>
                       <span className="text-[11px] font-bold text-pink-600">
-                        {t("cart_freeship")}
+                        {totals.promotion.isFreeShipping
+                          ? "🚚 Freeship toàn quốc"
+                          : "Freeship đơn từ 30c hoặc >600k"}
                       </span>
                     </div>
 
@@ -1038,7 +1164,6 @@ export default function DesignCustomizerModal({
                                   : "border-pink-200/70 bg-white/90 hover:border-pink-300"
                               }`}
                             >
-                              {/* Left: Thumbnail & details */}
                               <div className="flex items-center gap-2.5 min-w-0">
                                 <div className="relative h-12 w-12 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0 bg-slate-50">
                                   <img
@@ -1055,7 +1180,12 @@ export default function DesignCustomizerModal({
 
                                 <div className="min-w-0">
                                   <h5 className="text-xs font-black text-[#1E1035] truncate leading-tight">
-                                    {getProductTypeName(item.productType)}
+                                    {item.productName}
+                                    {item.styleLabel && (
+                                      <span className="ml-1.5 inline-block px-1.5 py-0.2 rounded-md text-[10px] font-bold bg-pink-100 text-pink-700">
+                                        {item.styleLabel}
+                                      </span>
+                                    )}
                                   </h5>
                                   <p className="text-[10px] font-bold text-slate-500 mt-0.5">
                                     Size: <span className="text-pink-600">{item.sizeValue}</span> •{" "}
@@ -1084,9 +1214,7 @@ export default function DesignCustomizerModal({
                                 </div>
                               </div>
 
-                              {/* Right: Quantity, Subtotal, Delete */}
                               <div className="flex items-center gap-3 flex-shrink-0">
-                                {/* Quantity buttons */}
                                 <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-xs">
                                   <button
                                     type="button"
@@ -1125,11 +1253,21 @@ export default function DesignCustomizerModal({
                         })}
                       </div>
                     )}
+
+                    {/* Applied promotions banner in cart */}
+                    {totals.promotion.promotionNotes.length > 0 && (
+                      <div className="rounded-xl border border-pink-200 bg-gradient-to-r from-pink-50 via-purple-50 to-sky-50 p-2.5 space-y-1">
+                        {totals.promotion.promotionNotes.map((note, nIdx) => (
+                          <div key={nIdx} className="flex items-center gap-1.5 text-[11px] font-black text-pink-700">
+                            <Gift className="h-3.5 w-3.5 text-pink-600 flex-shrink-0" />
+                            <span>{note}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  {/* ========================================================= */}
-                  {/* 3. CUSTOMER CHECKOUT INFORMATION FORM                     */}
-                  {/* ========================================================= */}
+                  {/* 3. CUSTOMER CHECKOUT INFORMATION FORM */}
                   <form onSubmit={handleSubmitOrder} className="space-y-3.5 pt-3 border-t border-pink-200/80">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-black uppercase tracking-wider text-slate-700 block">
@@ -1140,7 +1278,7 @@ export default function DesignCustomizerModal({
                       </span>
                     </div>
 
-                    {/* Choose Delivery Country: Vietnam vs Thailand */}
+                    {/* Choose Delivery Country */}
                     <div>
                       <div className="text-[11px] font-black uppercase text-slate-600 mb-1.5 flex items-center justify-between">
                         <span>{t("form_country")}</span>
@@ -1218,12 +1356,14 @@ export default function DesignCustomizerModal({
                       />
                     </div>
 
-                    {/* Summary row & Submit Button */}
+                    {/* Summary & Submit Button */}
                     <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-pink-200/80">
                       <div>
                         <div className="text-[11px] font-bold text-slate-500">
                           {t("form_summary_items")} {totals.totalItems} {t("form_summary_lines")} ({totals.totalQuantity} {t("form_summary_pcs")}) •{" "}
-                          <span className="text-emerald-600 font-black">{t("form_freeship_badge")}</span>:
+                          <span className="text-emerald-600 font-black">
+                            {totals.promotion.isFreeShipping ? "Freeship" : "Ship 25k"}
+                          </span>
                         </div>
                         <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 font-mono">
                           {formatPrice(totals.totalPrice)}

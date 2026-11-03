@@ -99,20 +99,23 @@ export async function POST(req: NextRequest) {
 
     // 3. Server-side authoritative price recalculation
     const verifiedItems = items.map((item: any, idx: number) => {
-      const type = item.productType || "keychain";
-      const size = item.size || "L";
+      const type = item.productType || "mica-magnet";
+      const style = item.styleType || "face";
+      const size = item.size || "S";
       const qty = Math.max(1, Math.floor(item.quantity || 1));
-      const { unitPrice, subtotal } = calculateItemPrice(type, size, qty);
+      const { unitPrice, subtotal, sizeDimension } = calculateItemPrice(type, size, qty, style);
 
-      const prodName = PRODUCT_CONFIGS[type]?.name || "Móc khóa mica";
-      const sizeDimension = SIZE_CONFIGS[size]?.dimension || "10 cm";
+      const prodName = PRODUCT_CONFIGS[type]?.name || "Mica nam châm";
+      const styleName = item.styleLabel || style;
 
       return {
         itemId: item.id || `item-${idx + 1}-${Date.now()}`,
         productType: type,
         productName: prodName,
+        styleType: style,
+        styleLabel: styleName,
         size,
-        sizeValue: sizeDimension,
+        sizeValue: sizeDimension || item.sizeValue || "Chuẩn",
         quantity: qty,
         unitPrice,
         subtotal,
@@ -121,7 +124,7 @@ export async function POST(req: NextRequest) {
       };
     });
 
-    const { totalItems, totalQuantity, subtotal, shippingFee, totalPrice } =
+    const { totalItems, totalQuantity, subtotal, discountAmount, shippingFee, totalPrice, promotion } =
       calculateCartTotals(verifiedItems);
 
     const orderId = generateOrderId(orderPrefix);
@@ -142,8 +145,10 @@ export async function POST(req: NextRequest) {
       totalItems,
       totalQuantity,
       subtotal,
+      discountAmount,
       shippingFee,
       totalPrice,
+      promotion,
     };
 
     // 4. Forward to Google Apps Script if URL is configured

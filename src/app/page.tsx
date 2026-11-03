@@ -8,7 +8,7 @@ import ProductRotation from "@/components/ProductRotation";
 import FullBodyCutoutSection from "@/components/FullBodyCutoutSection";
 import SizeSelector from "@/components/SizeSelector";
 import DesignProcess from "@/components/DesignProcess";
-import Gallery from "@/components/Gallery";
+import PricingSection from "@/components/PricingSection";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
@@ -136,9 +136,9 @@ export default function Home() {
 
         <SectionDivider />
 
-        {/* 6. Gallery / Bento Grid Showcase Thành Phẩm */}
-        <section id="gallery" className="scroll-mt-24">
-          <Gallery />
+        {/* 6. Bảng giá sản phẩm LADA GIFT (Thay thế Gallery) */}
+        <section id="pricing" className="scroll-mt-24">
+          <PricingSection onOpenCustomizer={(type) => handleOpenCustomizer(type || "mica-magnet", "S")} />
         </section>
 
         <SectionDivider />

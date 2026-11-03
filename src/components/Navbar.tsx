@@ -12,7 +12,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 /* -------------------------------------------------------------------------- */
 
 interface NavLink {
-  key: "nav_products" | "nav_showroom" | "nav_sizes" | "nav_process" | "nav_gallery" | "nav_contact";
+  key: "nav_products" | "nav_showroom" | "nav_sizes" | "nav_process" | "nav_pricing" | "nav_gallery" | "nav_contact";
   href: string;
 }
 
@@ -21,7 +21,7 @@ const navLinksConfig: NavLink[] = [
   { key: "nav_showroom", href: "#showroom" },
   { key: "nav_sizes", href: "#sizes" },
   { key: "nav_process", href: "#process" },
-  { key: "nav_gallery", href: "#gallery" },
+  { key: "nav_pricing", href: "#pricing" },
   { key: "nav_contact", href: "#contact" },
 ];
 

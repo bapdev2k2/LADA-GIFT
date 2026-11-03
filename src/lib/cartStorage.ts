@@ -3,12 +3,17 @@
  * Supports LocalStorage + IndexedDB for robust image persistence across page reloads
  */
 
+export type ProductTypeKey = "keychain" | "magnet" | "mica-magnet";
+export type StyleTypeKey = "fullbody" | "face" | "original" | "square" | "rect";
+
 export interface CartItem {
   id: string; // Unique item ID
-  productType: "keychain" | "magnet" | "mica-magnet";
+  productType: ProductTypeKey;
   productName: string;
-  size: "S" | "L" | "XL";
-  sizeValue: string; // e.g. "7.5 cm", "10 cm", "15 cm"
+  styleType?: StyleTypeKey;
+  styleLabel?: string; // e.g. "Toàn thân", "Khuôn mặt", "Nguyên ảnh", "Ảnh vuông", "Ảnh chữ nhật"
+  size: "S" | "L" | "XL" | string;
+  sizeValue: string; // e.g. "5x7.5 cm", "5x5 cm", "8x10 cm", "9x6.5 cm"
   quantity: number;
   imageFile?: File | null;
   imagePreview: string; // Data URL or preset image URL
@@ -28,6 +33,8 @@ export interface OrderItemPayload {
   itemId: string;
   productType: string;
   productName: string;
+  styleType?: string;
+  styleLabel?: string;
   size: string;
   sizeValue: string;
   quantity: number;
@@ -55,8 +62,8 @@ export interface OrderResult {
   driveFolderUrl?: string;
 }
 
-const STORAGE_KEY = "lada_gift_cart_v2";
-const CUSTOMER_STORAGE_KEY = "lada_gift_customer_v2";
+const STORAGE_KEY = "lada_gift_cart_v3";
+const CUSTOMER_STORAGE_KEY = "lada_gift_customer_v3";
 
 /**
  * Save cart items to SessionStorage (tự động xóa khi đóng tab hoặc tải lại)
@@ -68,6 +75,8 @@ export function saveCartToStorage(items: CartItem[]): void {
       id: item.id,
       productType: item.productType,
       productName: item.productName,
+      styleType: item.styleType,
+      styleLabel: item.styleLabel,
       size: item.size,
       sizeValue: item.sizeValue,
       quantity: item.quantity,
@@ -95,7 +104,7 @@ export function loadCartFromStorage(): CartItem[] {
       return parsed.map((p) => ({
         ...p,
         quantity: Math.max(1, p.quantity || 1),
-        subtotal: (p.unitPrice || 35000) * (p.quantity || 1),
+        subtotal: (p.unitPrice || 25000) * (p.quantity || 1),
       }));
     }
   } catch (err) {
