@@ -244,11 +244,6 @@ export default function DesignProcess({ onOpenCustomizer }: DesignProcessProps =
       ref={sectionRef}
       className="relative overflow-hidden py-20 md:py-32"
     >
-      {/* Soft Ambient Background Glow */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="h-[500px] w-[500px] sm:h-[700px] sm:w-[700px] rounded-full bg-gradient-to-tr from-pink-300/20 via-purple-300/15 to-sky-300/20 blur-[120px]" />
-      </div>
-
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <motion.div

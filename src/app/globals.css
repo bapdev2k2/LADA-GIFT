@@ -34,7 +34,7 @@ html {
 }
 
 body {
-  background-color: #fce7f3;
+  background-color: transparent;
   color: #1E1035;
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
@@ -172,62 +172,86 @@ body {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Animated Holographic Background Keyframes (GPU-accelerated, 60fps)         */
+/*  Animated Holographic Background Keyframes (Active, Smooth & 60fps)         */
 /* -------------------------------------------------------------------------- */
 
+@keyframes mesh-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 @keyframes orb-float-1 {
-  0%, 100% {
+  0% {
     transform: translate3d(0, 0, 0) scale(1);
   }
   33% {
-    transform: translate3d(80px, -50px, 0) scale(1.1);
+    transform: translate3d(140px, -90px, 0) scale(1.18);
   }
   66% {
-    transform: translate3d(-40px, 60px, 0) scale(0.92);
+    transform: translate3d(-80px, 110px, 0) scale(0.92);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
 @keyframes orb-float-2 {
-  0%, 100% {
+  0% {
     transform: translate3d(0, 0, 0) scale(1);
   }
   33% {
-    transform: translate3d(-70px, 70px, 0) scale(0.9);
+    transform: translate3d(-130px, 120px, 0) scale(0.88);
   }
   66% {
-    transform: translate3d(60px, -40px, 0) scale(1.08);
+    transform: translate3d(110px, -70px, 0) scale(1.15);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
 @keyframes orb-float-3 {
-  0%, 100% {
+  0% {
     transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: translate3d(65px, 55px, 0) scale(1.15);
+    transform: translate3d(120px, 100px, 0) scale(1.22);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
 @keyframes orb-float-4 {
-  0%, 100% {
+  0% {
     transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: translate3d(-80px, -60px, 0) scale(1.08);
+    transform: translate3d(-140px, -110px, 0) scale(1.18);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
 @keyframes holo-light-sweep {
   0% {
-    transform: translate3d(-120%, -120%, 0) rotate(25deg);
+    transform: translate3d(-100%, -100%, 0) rotate(25deg);
     opacity: 0;
   }
   20% {
-    opacity: 0.45;
+    opacity: 0.6;
   }
   50% {
-    transform: translate3d(140%, 140%, 0) rotate(25deg);
-    opacity: 0.45;
+    transform: translate3d(120%, 120%, 0) rotate(25deg);
+    opacity: 0.6;
   }
   70%, 100% {
     transform: translate3d(200%, 200%, 0) rotate(25deg);
@@ -236,26 +260,31 @@ body {
 }
 
 .animate-orb-1 {
-  animation: orb-float-1 16s ease-in-out infinite alternate;
+  animation: orb-float-1 9s ease-in-out infinite;
   will-change: transform;
 }
 
 .animate-orb-2 {
-  animation: orb-float-2 20s ease-in-out infinite alternate;
+  animation: orb-float-2 11s ease-in-out infinite;
   will-change: transform;
 }
 
 .animate-orb-3 {
-  animation: orb-float-3 18s ease-in-out infinite alternate;
+  animation: orb-float-3 10s ease-in-out infinite;
   will-change: transform;
 }
 
 .animate-orb-4 {
-  animation: orb-float-4 22s ease-in-out infinite alternate;
+  animation: orb-float-4 12s ease-in-out infinite;
   will-change: transform;
 }
 
 .animate-holo-sweep {
-  animation: holo-light-sweep 15s ease-in-out infinite;
+  animation: holo-light-sweep 8s ease-in-out infinite;
   will-change: transform, opacity;
+}
+
+.animate-mesh {
+  background-size: 300% 300%;
+  animation: mesh-shift 14s ease infinite;
 }

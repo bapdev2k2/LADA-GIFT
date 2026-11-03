@@ -246,11 +246,6 @@ export default function ProductRotation({
       id="showroom"
       className="relative py-20 sm:py-28 overflow-hidden select-none"
     >
-      {/* Soft Light ambient glow */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="h-[600px] w-[600px] sm:h-[850px] sm:w-[850px] rounded-full bg-gradient-to-tr from-pink-300/30 via-purple-300/25 to-sky-300/30 blur-[120px]" />
-      </div>
-
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mx-auto max-w-3xl text-center">

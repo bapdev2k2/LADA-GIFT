@@ -135,9 +135,6 @@ export default function WhyChooseUs() {
 
   return (
     <section id="why-choose-us" className="relative py-24 sm:py-32 overflow-hidden">
-      {/* Background ambient lighting */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[900px] rounded-full bg-gradient-to-r from-purple-600/15 via-cyan-500/15 to-pink-600/15 blur-3xl" />
-
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" ref={containerRef}>
         {/* Section Header */}
         <div className="mx-auto max-w-3xl text-center">

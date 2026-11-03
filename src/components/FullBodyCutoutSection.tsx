@@ -99,10 +99,6 @@ export default function FullBodyCutoutSection({
       id="cutout-section"
       className="relative py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden"
     >
-      {/* Decorative ambient background glows - optimized with radial gradients */}
-      <div className="absolute top-1/4 -left-24 w-80 h-80 bg-[radial-gradient(circle,rgba(244,114,182,0.12)_0%,transparent_70%)] pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-24 w-80 h-80 bg-[radial-gradient(circle,rgba(168,85,247,0.12)_0%,transparent_70%)] pointer-events-none" />
-
       {/* Header Section */}
       <div className="text-center max-w-3xl mx-auto mb-14 relative z-10">
         <motion.div

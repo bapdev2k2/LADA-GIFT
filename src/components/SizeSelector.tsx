@@ -178,11 +178,6 @@ export default function SizeSelector({ onSelectSize }: SizeSelectorProps = {}) {
       ref={sectionRef}
       className="relative py-20 sm:py-28 px-4 sm:px-6 lg:px-8 overflow-hidden"
     >
-      {/* Soft Ambient Background Glow */}
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-        <div className="w-[500px] sm:w-[650px] h-[500px] sm:h-[650px] rounded-full bg-gradient-to-tr from-pink-300/25 via-purple-300/20 to-sky-300/25 blur-[120px]" />
-      </div>
-
       <div className="relative max-w-4xl mx-auto flex flex-col items-center">
         {/* Section Header - Perfectly Centered */}
         <motion.div

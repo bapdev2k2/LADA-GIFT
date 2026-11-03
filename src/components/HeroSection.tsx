@@ -157,10 +157,6 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
       onMouseMove={handleMouseMove}
       className="relative flex min-h-[86vh] lg:min-h-[88vh] w-full items-center justify-center overflow-hidden pt-24 pb-12 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-16"
     >
-      {/* Ambient Radial Lights behind Hero */}
-      <div className="pointer-events-none absolute -top-20 left-1/4 h-[500px] w-[500px] rounded-full bg-pink-300/30 blur-[110px]" />
-      <div className="pointer-events-none absolute top-1/3 right-10 h-[450px] w-[450px] rounded-full bg-sky-300/30 blur-[100px]" />
-
       {/* Main Container - Centered Vertically & Horizontally */}
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center justify-center gap-12 px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:px-8 xl:gap-14 my-auto">
         {/* Left Column: Brand, Persuasive Headline & Copywriting */}

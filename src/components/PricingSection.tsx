@@ -236,12 +236,7 @@ export default function PricingSection({ onOpenCustomizer }: PricingSectionProps
     activeTab === "all" ? pricingCards : pricingCards.filter((c) => c.id === activeTab);
 
   return (
-    <section id="pricing" className="relative py-20 overflow-hidden bg-gradient-to-b from-white/30 via-purple-50/20 to-sky-50/30 backdrop-blur-[2px]">
-      {/* Background Decorative Glow Circles */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-pink-200/35 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-[450px] h-[450px] bg-purple-200/35 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-1/3 right-10 w-[400px] h-[400px] bg-sky-200/30 rounded-full blur-[100px] pointer-events-none" />
-
+    <section id="pricing" className="relative py-20 overflow-hidden bg-transparent">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
