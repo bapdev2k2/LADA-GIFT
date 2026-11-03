@@ -35,6 +35,15 @@ export const metadata: Metadata = {
     locale: "vi_VN",
     images: ["/lada-gift-logo.jpg"],
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", sizes: "192x192", type: "image/png" },
+      { url: "/lada-gift-logo.jpg", type: "image/jpeg" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
