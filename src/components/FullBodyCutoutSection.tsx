@@ -68,6 +68,27 @@ const PRESETS: DemoPreset[] = [
   },
 ];
 
+const ACRYLIC_MICA_FILTER = [
+  // 1. Viền nhựa mica đúc viền bo sát quanh dáng người & vật (4-5px solid white acrylic contour)
+  "drop-shadow(5px 0 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(-5px 0 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(0 5px 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(0 -5px 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(4px 4px 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(-4px -4px 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(4px -4px 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(-4px 4px 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(2px 5px 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(-2px -5px 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(5px 2px 0 rgba(255, 255, 255, 0.98))",
+  "drop-shadow(-5px -2px 0 rgba(255, 255, 255, 0.98))",
+  // 2. Viền vát quang học kim cương sáng bóng (Diamond bevel crystal light rim)
+  "drop-shadow(0 0 2px rgba(186, 230, 253, 0.95))",
+  "drop-shadow(0 0 6px rgba(255, 255, 255, 0.85))",
+  // 3. Đổ bóng 3D của tấm mica dày 3.5mm nổi khối (3D cast shadow)
+  "drop-shadow(0 18px 28px rgba(30, 16, 60, 0.35))",
+].join(" ");
+
 export default function FullBodyCutoutSection({
   onOpenCustomizer,
 }: FullBodyCutoutSectionProps) {
@@ -270,27 +291,44 @@ export default function FullBodyCutoutSection({
             {/* Acrylic 3D mockup display */}
             <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100/70 via-pink-50/60 to-indigo-100/70 flex items-center justify-center border border-white/80 p-4">
               {/* 3D Acrylic block container with bevel shine */}
-              <div className="relative w-full h-[85%] flex items-center justify-center">
+              <div className="relative w-full h-[85%] flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500">
                 {/* Simulated Heart keychain or magnet fixture at top/back */}
                 {finishOption === "keychain" ? (
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center">
-                    <div className="w-6 h-6 rounded-full border-2 border-amber-300 bg-amber-100/95 shadow-md flex items-center justify-center">
-                      <Heart className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                  <motion.div
+                    key="keychain-fixture"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none"
+                  >
+                    {/* Metal heart keyring */}
+                    <div className="w-8 h-8 rounded-full border-[2.5px] border-amber-300 bg-gradient-to-tr from-amber-200 via-amber-100 to-amber-300 shadow-md flex items-center justify-center">
+                      <Heart className="w-4 h-4 text-amber-600 fill-amber-500" />
                     </div>
-                    <div className="w-1.5 h-3.5 bg-amber-400 shadow-sm" />
-                  </div>
+                    {/* Metal link */}
+                    <div className="w-1.5 h-3.5 bg-gradient-to-b from-amber-400 to-amber-300 shadow-sm rounded-full" />
+                    {/* Acrylic punched hole tab */}
+                    <div className="w-4 h-4 rounded-full border-2 border-white bg-white/70 shadow-sm -mt-1 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-900/40" />
+                    </div>
+                  </motion.div>
                 ) : (
-                  <div className="absolute top-2 right-2 z-30 px-2 py-0.5 rounded-md bg-purple-900/85 text-white text-[10px] font-bold flex items-center gap-1 shadow-md backdrop-blur-sm">
-                    <Magnet className="w-3 h-3 text-pink-300" />
-                    Neodymium
-                  </div>
+                  <motion.div
+                    key="magnet-fixture"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="absolute top-2 right-2 z-30 px-2.5 py-1 rounded-lg bg-purple-900/90 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-lg backdrop-blur-md border border-purple-400/30"
+                  >
+                    <Magnet className="w-3.5 h-3.5 text-pink-300" />
+                    <span>Neodymium</span>
+                  </motion.div>
                 )}
 
                 <Image
                   src={activePreset.cutoutImage}
                   alt={activePreset.cutoutAlt}
                   fill
-                  className="object-contain p-2 filter drop-shadow-[0_16px_28px_rgba(79,70,229,0.3)] brightness-105"
+                  className="object-contain p-2.5 brightness-105"
+                  style={{ filter: ACRYLIC_MICA_FILTER }}
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
 
