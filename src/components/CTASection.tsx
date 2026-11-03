@@ -311,13 +311,13 @@ export default function CTASection({ onOpenCustomizer }: CTASectionProps = {}) {
               variants={fadeUp}
               className="mb-6 text-3xl font-black leading-tight tracking-tight text-[#180D2B] sm:text-4xl lg:text-5xl"
             >
-              <span className="block">TURN YOUR</span>
+              <span className="block">{t("cta_title_1")}</span>
               <span className="block bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 bg-clip-text text-transparent">
-                FAVORITE MOMENTS
+                {t("cta_title_2")}
               </span>
-              <span className="block">INTO SOMETHING</span>
+              <span className="block">{t("cta_title_3")}</span>
               <span className="block bg-gradient-to-r from-purple-600 via-pink-600 to-sky-500 bg-clip-text text-transparent">
-                REAL & TIMELESS.
+                {t("cta_title_4")}
               </span>
             </motion.h2>
 

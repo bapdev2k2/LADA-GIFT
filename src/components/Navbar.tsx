@@ -250,20 +250,20 @@ export default function Navbar({ onOpenCustomizer }: NavbarProps = {}) {
                 <div className="text-[11px] font-black uppercase text-slate-500 mb-2">
                   Ngôn ngữ / Language / ภาษา:
                 </div>
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 gap-1.5">
                   {LANGUAGES.map((opt) => (
                     <button
                       key={opt.code}
                       type="button"
                       onClick={() => setLanguage(opt.code)}
-                      className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-xs font-bold transition border cursor-pointer ${
+                      className={`flex items-center gap-2.5 py-2 px-3 rounded-xl text-xs font-bold transition border cursor-pointer ${
                         language === opt.code
                           ? "bg-pink-600 text-white border-pink-600 shadow-sm"
                           : "bg-white text-slate-700 border-slate-200 hover:border-pink-300"
                       }`}
                     >
-                      <span>{opt.flag}</span>
-                      <span className="uppercase text-[11px]">{opt.code}</span>
+                      <span className="text-base">{opt.flag}</span>
+                      <span className="font-extrabold text-xs">{opt.name}</span>
                     </button>
                   ))}
                 </div>

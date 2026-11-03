@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { X, ZoomIn, Sparkles } from 'lucide-react';
 import { galleryItems } from '@/data/products';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useLanguage } from '@/lib/i18n';
 
 type GalleryItem = (typeof galleryItems)[number];
 
@@ -36,6 +37,13 @@ function GalleryCard({
   const isInView = useInView(cardRef, { once: true, amount: 0.15 });
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
+  const { t } = useLanguage();
+  const categoryLabel =
+    item.category === 'keychain'
+      ? t('gallery_cat_keychain')
+      : item.category === 'magnet'
+      ? t('gallery_cat_magnet')
+      : t('gallery_cat_mica_magnet');
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -120,7 +128,7 @@ function GalleryCard({
           <div
             className={`rounded-full bg-gradient-to-r ${categoryColors[item.category]} px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md`}
           >
-            {categoryLabels[item.category]}
+            {categoryLabel}
           </div>
 
           <div className="h-7 w-7 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-sm">
@@ -152,6 +160,13 @@ function Lightbox({
   onClose: () => void;
   reducedMotion: boolean;
 }) {
+  const { t } = useLanguage();
+  const categoryLabel =
+    item.category === 'keychain'
+      ? t('gallery_cat_keychain')
+      : item.category === 'magnet'
+      ? t('gallery_cat_magnet')
+      : t('gallery_cat_mica_magnet');
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -212,7 +227,7 @@ function Lightbox({
           <div
             className={`mb-2.5 inline-block rounded-full bg-gradient-to-r ${categoryColors[item.category]} px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-sm`}
           >
-            {categoryLabels[item.category]}
+            {categoryLabel}
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-[#1E1035]">{item.title}</h3>
           <p className="mt-2 text-sm font-semibold text-slate-600 leading-relaxed">
@@ -220,8 +235,8 @@ function Lightbox({
           </p>
 
           <div className="mt-4 pt-4 border-t border-pink-100 flex items-center justify-between text-xs font-bold text-slate-500">
-            <span>Sản phẩm gia công thực tế tại xưởng LADA GIFT</span>
-            <span className="text-pink-600 font-extrabold">Mica trong suốt 99.8%</span>
+            <span>{t("gallery_footer_info")}</span>
+            <span className="text-pink-600 font-extrabold">{t("gallery_footer_badge")}</span>
           </div>
         </div>
       </motion.div>
@@ -233,6 +248,7 @@ function Lightbox({
 export default function Gallery() {
   const reducedMotion = useReducedMotion();
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
+  const { t } = useLanguage();
 
   return (
     <section className="relative overflow-hidden py-20 md:py-32">
@@ -252,17 +268,17 @@ export default function Gallery() {
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-pink-300/80 bg-white/80 px-4 py-1 text-xs font-black uppercase tracking-widest text-pink-700 shadow-sm backdrop-blur-md mb-3">
             <Sparkles className="h-3.5 w-3.5 text-pink-500" />
-            <span>LADA GIFT • Showcase Gallery</span>
+            <span>{t("gallery_tag")}</span>
           </div>
           <h2 className="text-3xl font-black text-[#1E1035] md:text-4xl lg:text-5xl">
-            BỘ SƯU TẬP{' '}
+            {t("gallery_title")}{" "}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600">
-              THÀNH PHẨM THỰC TẾ
+              LADA GIFT
             </span>
           </h2>
           <div className="mx-auto mt-4 h-1 w-20 rounded-full bg-gradient-to-r from-pink-500 to-purple-500" />
           <p className="mt-3 text-sm sm:text-base font-semibold text-slate-700 max-w-xl mx-auto">
-            Chiêm ngưỡng hình ảnh các sản phẩm móc khóa, nam châm in hình cá nhân hóa đã được xưởng LADA GIFT hoàn thiện cho khách hàng.
+            {t("gallery_desc")}
           </p>
         </motion.div>
 

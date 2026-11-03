@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Sparkles, ShieldCheck, Palette, Crown, Gift, ArrowRight } from "lucide-react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useLanguage } from "@/lib/i18n";
 
 interface FeatureCardProps {
   icon: React.ElementType;
@@ -87,51 +88,47 @@ export default function WhyChooseUs() {
   const reducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-80px" });
+  const { t } = useLanguage();
 
   const features = [
     {
       icon: Sparkles,
-      subtitle: "Ultra HD UV Print",
-      title: "In hình sắc nét vượt trội",
-      description:
-        "Công nghệ in phun đa lớp UV 8 màu siêu phân giải. Mực in cao cấp chuẩn Nhật Bản bền màu trên 10 năm, không bong tróc, không ố vàng.",
-      badge: "Độ sắc nét 2400 DPI",
+      subtitle: t("why_feat1_sub"),
+      title: t("why_feat1_title"),
+      description: t("why_feat1_desc"),
+      badge: t("why_feat1_badge"),
       gradient: "from-[#00D4FF] via-[#3B82F6] to-[#A855F7]",
     },
     {
       icon: ShieldCheck,
-      subtitle: "Pure Acrylic Grade A",
-      title: "Mica đúc trong suốt 99.8%",
-      description:
-        "Sử dụng mica acrylic nhập khẩu nguyên khối, vát cạnh kim cương CNC siêu bóng. Chống va đập, chống thấm nước tuyệt đối với độ dày tiêu chuẩn 3mm - 5mm.",
-      badge: "Mica đúc chuẩn A",
+      subtitle: t("why_feat2_sub"),
+      title: t("why_feat2_title"),
+      description: t("why_feat2_desc"),
+      badge: t("why_feat2_badge"),
       gradient: "from-[#A855F7] via-[#EC4899] to-[#F43F5E]",
     },
     {
       icon: Palette,
-      subtitle: "Limitless Customization",
-      title: "Cá nhân hóa theo yêu cầu",
-      description:
-        "Tự do đưa hình ảnh người yêu, idol anime, thú cưng, chữ ký, mã QR Spotify lên sản phẩm. Cắt viền tự do theo form dáng hình ảnh không giới hạn.",
-      badge: "Free Die-Cut",
+      subtitle: t("why_feat3_sub"),
+      title: t("why_feat3_title"),
+      description: t("why_feat3_desc"),
+      badge: t("why_feat3_badge"),
       gradient: "from-[#38BDF8] via-[#818CF8] to-[#C084FC]",
     },
     {
       icon: Crown,
-      subtitle: "Exclusive LADA GIFT Touch",
-      title: "Gia công kim cương CNC độc quyền",
-      description:
-        "Tích hợp công nghệ đánh bóng quang học vát kim cương CNC, bề mặt bóng loáng như pha lê, bắt sáng lung linh dưới mọi góc nhìn.",
-      badge: "Độc quyền LADA GIFT",
+      subtitle: t("why_feat4_extra_sub"),
+      title: t("why_feat4_extra_title"),
+      description: t("why_feat4_extra_desc"),
+      badge: t("why_feat4_extra_badge"),
       gradient: "from-[#F472B6] via-[#A855F7] to-[#00D4FF]",
     },
     {
       icon: Gift,
-      subtitle: "Cyber Luxe Packaging",
-      title: "Đóng gói cao cấp làm quà tặng",
-      description:
-        "Mỗi sản phẩm đi kèm hộp quà LADA GIFT sang trọng, túi nhung bảo vệ và thiệp chúc mừng thiết kế riêng. Hoàn hảo để làm quà tặng sinh nhật, kỷ niệm, quà cặp đôi.",
-      badge: "Gift Box Included",
+      subtitle: t("why_feat5_sub"),
+      title: t("why_feat5_title"),
+      description: t("why_feat5_desc"),
+      badge: t("why_feat5_badge"),
       gradient: "from-[#34D399] via-[#06B6D4] to-[#3B82F6]",
     },
   ];
@@ -151,7 +148,7 @@ export default function WhyChooseUs() {
             className="inline-flex items-center gap-2 rounded-full border border-pink-300/80 bg-white/80 px-4 py-1 text-xs font-black uppercase tracking-widest text-pink-700 shadow-sm backdrop-blur-md"
           >
             <Sparkles className="h-3.5 w-3.5 text-pink-500" />
-            <span>LADA GIFT • Đẳng cấp chất lượng</span>
+            <span>{t("why_tag")}</span>
           </motion.div>
 
           <motion.h2
@@ -160,10 +157,7 @@ export default function WhyChooseUs() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="mt-4 text-3xl font-black tracking-tight sm:text-5xl text-[#1E1035]"
           >
-            Tại sao nên chọn{" "}
-            <span className="bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600 bg-clip-text text-transparent">
-              LADA GIFT?
-            </span>
+            {t("why_title")}
           </motion.h2>
 
           <motion.p
@@ -172,8 +166,7 @@ export default function WhyChooseUs() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-4 text-base sm:text-lg font-medium text-slate-700"
           >
-            Sự kết hợp giữa công nghệ in UV đa lớp hiện đại và chất liệu mica cao cấp tạo nên
-            những tác phẩm quà tặng LADA GIFT bền vững theo thời gian.
+            {t("why_subtitle")}
           </motion.p>
         </div>
 

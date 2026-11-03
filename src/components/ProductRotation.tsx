@@ -240,7 +240,7 @@ export default function ProductRotation({
             className="inline-flex items-center gap-2 rounded-full border border-pink-300/80 bg-white/80 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-pink-700 shadow-sm backdrop-blur-md"
           >
             <Sparkles className="h-3.5 w-3.5 text-pink-500 animate-pulse" />
-            <span>LADA GIFT • 360° Studio</span>
+            <span>{t("showroom_tag")}</span>
           </motion.div>
 
           <motion.h2
@@ -339,7 +339,7 @@ export default function ProductRotation({
                     {/* Badge & Price */}
                     <div className="flex items-center justify-between mb-2">
                       <span className="rounded-full bg-gradient-to-r from-pink-500 to-purple-600 px-2.5 py-0.5 text-[10px] font-black text-white uppercase tracking-wider shadow-sm">
-                        {item.badge}
+                        {t(`showroom_item${index + 1}_badge` as any) || item.badge}
                       </span>
                       <span className="text-xs font-black text-pink-600 font-mono">
                         {item.price}
@@ -376,10 +376,10 @@ export default function ProductRotation({
                     {/* Title & subtitle (100% sharp text on solid white background) */}
                     <div className="mt-2.5 text-center px-1">
                       <h4 className="text-xs sm:text-sm font-black text-[#1E1035] leading-snug line-clamp-1">
-                        {item.name}
+                        {t(`showroom_item${index + 1}_name` as any) || item.name}
                       </h4>
                       <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 mt-0.5 line-clamp-1">
-                        {item.subtitle}
+                        {t(`showroom_item${index + 1}_sub` as any) || item.subtitle}
                       </p>
                     </div>
 

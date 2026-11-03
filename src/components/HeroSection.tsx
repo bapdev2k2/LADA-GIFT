@@ -288,7 +288,7 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
                 {/* Badge */}
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
-                    Mica Đúc 100%
+                    {t("hero_card1_badge")}
                   </span>
                   <span className="text-[11px] font-black text-sky-600 font-mono">
                     25.000đ
@@ -315,9 +315,9 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
                 </div>
 
                 <div className="mt-2 text-center">
-                  <h4 className="text-[11px] sm:text-xs font-black text-[#1E1035] truncate">Nam Châm Mica Tủ Lạnh</h4>
+                  <h4 className="text-[11px] sm:text-xs font-black text-[#1E1035] truncate">{t("hero_card1_title")}</h4>
                   <p className="text-[9px] sm:text-[10px] font-bold text-sky-600 mt-0.5">
-                    Hút nam châm vĩnh cửu
+                    {t("hero_card1_desc")}
                   </p>
                 </div>
               </motion.div>
@@ -354,7 +354,7 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
                 {/* Badge Row */}
                 <div className="flex items-center justify-between mb-1.5 mt-0.5">
                   <span className="rounded-full bg-gradient-to-r from-pink-500 to-purple-600 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
-                    Bán chạy #1
+                    {t("hero_card2_badge")}
                   </span>
                   <span className="text-[11px] font-black text-pink-600 font-mono">
                     35.000đ
@@ -382,9 +382,9 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
 
                 {/* Title */}
                 <div className="mt-2 text-center">
-                  <h4 className="text-[11px] sm:text-xs font-black text-[#1E1035] truncate">Móc Khóa Mica LADA</h4>
+                  <h4 className="text-[11px] sm:text-xs font-black text-[#1E1035] truncate">{t("hero_card2_title")}</h4>
                   <p className="text-[9px] sm:text-[10px] font-bold text-pink-600 mt-0.5">
-                    Vát kim cương CNC • In 2 mặt
+                    {t("hero_card2_desc")}
                   </p>
                 </div>
               </motion.div>
@@ -414,7 +414,7 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
                 {/* Badge */}
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="rounded-full bg-gradient-to-r from-purple-600 to-pink-500 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm">
-                    In Theo Ảnh Yêu Cầu
+                    {t("hero_card3_badge")}
                   </span>
                   <span className="text-[10px] font-black text-purple-600 font-mono">
                     VIP
@@ -441,9 +441,9 @@ export default function HeroSection({ onOpenCustomizer }: HeroSectionProps = {})
                 </div>
 
                 <div className="mt-2 text-center">
-                  <h4 className="text-[11px] sm:text-xs font-black text-[#1E1035] truncate">Set Quà Tặng Cá Nhân</h4>
+                  <h4 className="text-[11px] sm:text-xs font-black text-[#1E1035] truncate">{t("hero_card3_title")}</h4>
                   <p className="text-[9px] sm:text-[10px] font-bold text-purple-600 mt-0.5">
-                    Tặng người yêu, bạn thân
+                    {t("hero_card3_desc")}
                   </p>
                 </div>
               </motion.div>

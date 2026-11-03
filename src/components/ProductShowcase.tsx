@@ -352,7 +352,15 @@ function ProductCard({ product, index, onViewDetails, onOrder }: CardProps) {
                   : product.nameVi}
               </h3>
               <p className="text-sm font-medium text-slate-600 leading-relaxed min-h-[44px] line-clamp-2">
-                {language === "en" ? product.description : product.descriptionVi}
+                {language === "th"
+                  ? (product.category === "keychain"
+                      ? "พวงกุญแจอะคริลิกใสคุณภาพพรีเมียม พิมพ์ภาพตามสั่ง ผิวมันวาวดุจคริสตัล พร้อมห่วงโลหะแข็งแรง"
+                      : product.category === "magnet"
+                      ? "แม่เหล็กพิมพ์ภาพตามสั่ง สำหรับติดตู้เย็นหรือพื้นผิวโลหะ มีให้เลือกทั้งแบบสี่เหลี่ยมและไดคัทตามทรงภาพ"
+                      : "อะคริลิกหล่อแข็งระดับพรีเมียม ฝังแม่เหล็กนีโอไดเมียม เจียระไนขอบเพชร CNC แวววาวหรูหรา")
+                  : language === "en"
+                  ? product.description
+                  : product.descriptionVi}
               </p>
             </div>
 
@@ -360,13 +368,26 @@ function ProductCard({ product, index, onViewDetails, onOrder }: CardProps) {
             <p className="text-2xl font-black text-pink-600">
               {formatPrice(product.price)}
               <span className="text-xs font-bold text-slate-500 ml-1.5">
-                / size S chuẩn
+                {t("per_size_s")}
               </span>
             </p>
 
             {/* Feature tags */}
             <div className="flex flex-wrap gap-2 min-h-[32px] items-center">
-              {product.features.map((feat) => (
+              {(language === "th"
+                ? (product.category === "keychain"
+                    ? ["อะคริลิกใส 99.8%", "พิมพ์ UV คมชัดสูง", "ห่วงโลหะพรีเมียม", "กันรอยขีดข่วน"]
+                    : product.category === "magnet"
+                    ? ["แม่เหล็กแรงดูดสูง", "พิมพ์สี HD แม่นยำ", "กันน้ำ 100%", "ไดคัทตามทรง"]
+                    : ["อะคริลิกหล่อเกรด A", "แม่เหล็กฝังแนบเนียน", "เจียระไนขอบเพชร CNC", "ผิวมันวาวดุจกระจก"])
+                : language === "en"
+                ? (product.category === "keychain"
+                    ? ["99.8% Clear Acrylic", "Sharp UV Print", "Durable Metal Ring", "Scratch Resistant"]
+                    : product.category === "magnet"
+                    ? ["Strong Magnetic Grip", "HD Color Print", "100% Waterproof", "Custom Die-cut"]
+                    : ["Grade A Cast Acrylic", "Embedded Magnet", "Diamond CNC Bevel", "Mirror Gloss Surface"])
+                : product.features
+              ).map((feat) => (
                 <span
                   key={feat}
                   className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-pink-50/90 border border-pink-200/80 text-pink-700 shadow-sm"

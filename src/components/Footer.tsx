@@ -134,6 +134,21 @@ export default function Footer() {
   const footerRef = useRef<HTMLElement>(null);
   const isInView = useInView(footerRef, { once: true, margin: "-50px" });
 
+  const productLinks: FooterLink[] = [
+    { label: t("footer_link_keychain"), href: "#products" },
+    { label: t("footer_link_magnet"), href: "#products" },
+    { label: t("footer_link_mica_magnet"), href: "#products" },
+    { label: t("footer_link_giftset"), href: "#products" },
+    { label: t("nav_showroom"), href: "#showroom" },
+  ];
+
+  const policyLinks: FooterLink[] = [
+    { label: t("footer_link_warranty"), href: "#" },
+    { label: t("footer_link_guide"), href: "#" },
+    { label: t("footer_link_shipping"), href: "#" },
+    { label: t("footer_link_privacy"), href: "#" },
+  ];
+
   return (
     <footer
       ref={footerRef}
@@ -200,7 +215,7 @@ export default function Footer() {
           {/* Column 2: Products */}
           <motion.div variants={itemVariants}>
             <h3 className="mb-4 text-xs font-black tracking-wider text-[#1E1035] uppercase">
-              Danh mục sản phẩm
+              {t("footer_col_products")}
             </h3>
             <ul className="space-y-3">
               {productLinks.map((link) => (
@@ -212,7 +227,7 @@ export default function Footer() {
           {/* Column 3: Policies */}
           <motion.div variants={itemVariants}>
             <h3 className="mb-4 text-xs font-black tracking-wider text-[#1E1035] uppercase">
-              Chính sách & Hỗ trợ
+              {t("footer_col_policies")}
             </h3>
             <ul className="space-y-3">
               {policyLinks.map((link) => (
@@ -224,7 +239,7 @@ export default function Footer() {
           {/* Column 4: Contact */}
           <motion.div variants={itemVariants}>
             <h3 className="mb-4 text-xs font-black tracking-wider text-[#1E1035] uppercase">
-              Liên hệ xưởng LADA GIFT
+              {t("footer_col_contact")}
             </h3>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
@@ -248,7 +263,7 @@ export default function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-pink-600" />
                 <span className="text-sm font-semibold text-slate-700">
-                  Hà Nội & TP. Hồ Chí Minh (Giao hàng toàn quốc)
+                  {t("footer_location")}
                 </span>
               </li>
             </ul>
@@ -259,7 +274,7 @@ export default function Footer() {
         <div className="mt-12 pt-6 border-t border-pink-100 flex flex-col sm:flex-row items-center justify-between text-xs font-bold text-slate-500 gap-4">
           <p>© {new Date().getFullYear()} LADA GIFT. All rights reserved. Gift From The Heart.</p>
           <div className="flex items-center gap-1.5 text-pink-600 font-extrabold">
-            <span>Thiết kế độc quyền từ LADA GIFT</span>
+            <span>{t("footer_exclusive")}</span>
             <Heart className="h-3.5 w-3.5 fill-pink-500" />
           </div>
         </div>

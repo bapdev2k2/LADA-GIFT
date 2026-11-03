@@ -60,18 +60,22 @@ interface DesignCustomizerModalProps {
 const samplePresets = [
   {
     name: "LADA GIFT Brand",
+    presetKey: "preset_brand" as const,
     url: "/lada-gift-logo.jpg",
   },
   {
     name: "Couple Kỷ Niệm",
+    presetKey: "preset_couple" as const,
     url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
   },
   {
     name: "Kawaii Pet",
+    presetKey: "preset_pet" as const,
     url: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&auto=format&fit=crop&q=80",
   },
   {
     name: "Anime Chibi",
+    presetKey: "preset_anime" as const,
     url: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80",
   },
 ];
@@ -123,6 +127,32 @@ export default function DesignCustomizerModal({
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const { t, language } = useLanguage();
+
+  const getProductTypeName = (type: "keychain" | "magnet" | "mica-magnet") => {
+    switch (type) {
+      case "keychain":
+        return t("cat_keychain");
+      case "magnet":
+        return t("cat_magnet");
+      case "mica-magnet":
+        return t("cat_mica_magnet");
+      default:
+        return PRODUCT_CONFIGS[type]?.name || "";
+    }
+  };
+
+  const getProductTypeTagline = (type: "keychain" | "magnet" | "mica-magnet") => {
+    switch (type) {
+      case "keychain":
+        return t("cfg_tagline_keychain");
+      case "magnet":
+        return t("cfg_tagline_magnet");
+      case "mica-magnet":
+        return t("cfg_tagline_mica_magnet");
+      default:
+        return PRODUCT_CONFIGS[type]?.tagline || "";
+    }
+  };
 
   // Multi-Product Cart Items list
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -270,7 +300,7 @@ export default function DesignCustomizerModal({
       currentSize,
       currentQty
     );
-    const prodName = PRODUCT_CONFIGS[currentType]?.name || "Móc khóa mica";
+    const prodName = getProductTypeName(currentType);
     const sizeDim = SIZE_CONFIGS[currentSize]?.dimension || "10 cm";
 
     if (editingItemId) {
@@ -357,7 +387,13 @@ export default function DesignCustomizerModal({
     e.preventDefault();
 
     if (!customerName.trim()) {
-      alert("Vui lòng nhập họ và tên của bạn!");
+      alert(
+        language === "th"
+          ? "กรุณากรอกชื่อ-นามสกุลของคุณ!"
+          : language === "en"
+          ? "Please enter your full name!"
+          : "Vui lòng nhập họ và tên của bạn!"
+      );
       return;
     }
 
@@ -464,11 +500,24 @@ export default function DesignCustomizerModal({
           });
         }
       } else {
-        alert(result.message || "Không thể gửi đơn hàng. Vui lòng kiểm tra lại thông tin!");
+        alert(
+          result.message ||
+            (language === "th"
+              ? "ไม่สามารถส่งคำสั่งซื้อได้ กรุณาตรวจสอบข้อมูลอีกครั้ง!"
+              : language === "en"
+              ? "Unable to submit order. Please verify your details!"
+              : "Không thể gửi đơn hàng. Vui lòng kiểm tra lại thông tin!")
+        );
       }
     } catch (err: any) {
       console.error("Order submit failed:", err);
-      alert("Có lỗi mạng khi gửi đơn hàng. Vui lòng thử lại sau!");
+      alert(
+        language === "th"
+          ? "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง!"
+          : language === "en"
+          ? "Network error while submitting order. Please try again later!"
+          : "Có lỗi mạng khi gửi đơn hàng. Vui lòng thử lại sau!"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -655,9 +704,9 @@ export default function DesignCustomizerModal({
 
                 <div className="w-full flex items-center justify-between text-xs text-slate-600 z-10 font-bold">
                   <span className="flex items-center gap-1.5 text-pink-600">
-                    <Layers className="h-3.5 w-3.5" /> 3D Mockup Trực Quan
+                    <Layers className="h-3.5 w-3.5" /> {t("modal_3d_mockup")}
                   </span>
-                  <span className="italic text-slate-500 text-[11px]">Di chuột để xoay 360°</span>
+                  <span className="italic text-slate-500 text-[11px]">{t("modal_drag_rotate")}</span>
                 </div>
 
                 {/* 3D Acrylic Object Container */}
@@ -741,7 +790,7 @@ export default function DesignCustomizerModal({
                       {/* Magnet badge indicator if magnet type */}
                       {previewType !== "keychain" && (
                         <div className="absolute top-2 right-2 rounded-md bg-white/90 backdrop-blur-md px-2 py-0.5 text-[9px] font-black tracking-wider text-pink-700 border border-pink-200 shadow-sm">
-                          {previewType === "magnet" ? "NAM CHÂM DẺO" : "MICA + NAM CHÂM"}
+                          {previewType === "magnet" ? t("modal_badge_magnet") : t("modal_badge_mica_magnet")}
                         </div>
                       )}
                     </div>
@@ -759,10 +808,10 @@ export default function DesignCustomizerModal({
                     className="flex items-center gap-1.5 rounded-xl border border-pink-200 bg-white/90 px-3 py-1 font-bold text-slate-700 hover:bg-white hover:text-pink-600 transition shadow-sm cursor-pointer"
                   >
                     <RotateCw className="h-3.5 w-3.5" />
-                    {autoRotate ? "Dừng xoay" : "Tự động xoay"}
+                    {autoRotate ? t("modal_autorotate_off") : t("modal_autorotate_on")}
                   </button>
                   <span className="text-[11px] font-bold text-slate-500 font-mono">
-                    {activeItem ? "Đang xem từ giỏ:" : "Xem thử thiết kế:"} {PRODUCT_CONFIGS[previewType]?.name} ({previewSize})
+                    {activeItem ? t("modal_viewing_from_cart") : t("modal_previewing_design")} {getProductTypeName(previewType)} ({previewSize})
                   </span>
                 </div>
               </div>
@@ -789,7 +838,7 @@ export default function DesignCustomizerModal({
                           onClick={() => setEditingItemId(null)}
                           className="text-[11px] font-bold text-slate-500 hover:text-pink-600 underline cursor-pointer"
                         >
-                          Hủy sửa
+                          {t("cfg_cancel_edit")}
                         </button>
                       )}
                     </div>
@@ -813,9 +862,9 @@ export default function DesignCustomizerModal({
                                   : "border-slate-200 bg-white/90 text-slate-600 hover:border-pink-300 hover:bg-white"
                               }`}
                             >
-                              <span className="text-xs font-black text-[#1E1035]">{tItem.name}</span>
+                              <span className="text-xs font-black text-[#1E1035]">{getProductTypeName(tItem.id)}</span>
                               <span className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
-                                {tItem.tagline}
+                                {getProductTypeTagline(tItem.id)}
                               </span>
                               <span className="mt-1 text-[11px] font-black text-pink-600">
                                 {t("from_price")} {formatPrice(tItem.basePrice)}
@@ -847,7 +896,7 @@ export default function DesignCustomizerModal({
                             >
                               <div className="text-xs font-black text-[#1E1035]">{s.label}</div>
                               <div className="text-[10px] font-semibold text-slate-500 mt-0.5">
-                                {s.priceOffset > 0 ? `+${formatPrice(s.priceOffset)}` : "Giá gốc"}
+                                {s.priceOffset > 0 ? `+${formatPrice(s.priceOffset)}` : t("cfg_base_price")}
                               </div>
                             </button>
                           );
@@ -882,6 +931,7 @@ export default function DesignCustomizerModal({
                       <div className="flex items-center gap-2 overflow-x-auto pb-1">
                         {samplePresets.map((preset) => {
                           const isSelected = currentImage === preset.url;
+                          const displayName = preset.presetKey && (t as any)(preset.presetKey) ? t(preset.presetKey) : preset.name;
                           return (
                             <button
                               key={preset.name}
@@ -898,10 +948,10 @@ export default function DesignCustomizerModal({
                             >
                               <img
                                 src={preset.url}
-                                alt={preset.name}
+                                alt={displayName}
                                 className="h-6 w-6 rounded-lg object-cover"
                               />
-                              <span className="text-[11px] font-bold pr-1">{preset.name}</span>
+                              <span className="text-[11px] font-bold pr-1">{displayName}</span>
                             </button>
                           );
                         })}
@@ -998,18 +1048,18 @@ export default function DesignCustomizerModal({
                                   />
                                   {isCurrentlyActiveIn3D && (
                                     <span className="absolute bottom-0 inset-x-0 bg-pink-600 text-[8px] font-black text-white text-center py-0.5">
-                                      Đang xem 3D
+                                      {t("cart_viewing_3d")}
                                     </span>
                                   )}
                                 </div>
 
                                 <div className="min-w-0">
                                   <h5 className="text-xs font-black text-[#1E1035] truncate leading-tight">
-                                    {item.productName}
+                                    {getProductTypeName(item.productType)}
                                   </h5>
                                   <p className="text-[10px] font-bold text-slate-500 mt-0.5">
                                     Size: <span className="text-pink-600">{item.sizeValue}</span> •{" "}
-                                    <span className="text-purple-700">{formatPrice(item.unitPrice)}/c</span>
+                                    <span className="text-purple-700">{formatPrice(item.unitPrice)}/{t("item_unit")}</span>
                                   </p>
                                   <div className="flex items-center gap-2 mt-1">
                                     <button
@@ -1017,7 +1067,7 @@ export default function DesignCustomizerModal({
                                       onClick={() => setActivePreviewIndex(index)}
                                       className="text-[10px] font-bold text-sky-600 hover:text-sky-700 flex items-center gap-0.5 cursor-pointer"
                                     >
-                                      <Eye className="h-3 w-3" /> Xem 3D
+                                      <Eye className="h-3 w-3" /> {t("cart_view_3d")}
                                     </button>
                                     <span className="text-slate-300">•</span>
                                     <button
@@ -1028,7 +1078,7 @@ export default function DesignCustomizerModal({
                                       }}
                                       className="text-[10px] font-bold text-purple-600 hover:text-purple-700 flex items-center gap-0.5 cursor-pointer"
                                     >
-                                      <ImageIcon className="h-3 w-3" /> Đổi ảnh
+                                      <ImageIcon className="h-3 w-3" /> {t("cart_change_photo")}
                                     </button>
                                   </div>
                                 </div>
@@ -1065,7 +1115,7 @@ export default function DesignCustomizerModal({
                                   type="button"
                                   onClick={() => handleDeleteItem(item.id)}
                                   className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition cursor-pointer"
-                                  title="Xóa sản phẩm này"
+                                  title={t("cart_delete_title")}
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </button>
@@ -1086,7 +1136,7 @@ export default function DesignCustomizerModal({
                         {t("form_heading")}
                       </label>
                       <span className="text-[10px] font-bold text-pink-600 font-mono">
-                        {customerCountry === "VN" ? "Mã: MC-XXXX" : "Mã: TL-XXXX"}
+                        {`${t("form_code_prefix")}: ${customerCountry === "VN" ? "MC-XXXX" : "TL-XXXX"}`}
                       </span>
                     </div>
 

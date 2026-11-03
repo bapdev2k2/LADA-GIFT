@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Package, Ruler, Upload, CheckCircle } from 'lucide-react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useLanguage } from '@/lib/i18n';
 
 interface Step {
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
@@ -53,6 +54,9 @@ function StepCard({
   reducedMotion: boolean;
 }) {
   const Icon = step.icon;
+  const { t } = useLanguage();
+  const stepTitle = t(`process_step_${step.number}` as any) || step.title;
+  const stepDesc = t(`process_step_${step.number}_desc` as any) || step.description;
 
   return (
     <motion.div
@@ -119,11 +123,11 @@ function StepCard({
         </motion.div>
 
         {/* Title */}
-        <h3 className="mb-2 text-lg font-black text-[#1E1035]">{step.title}</h3>
+        <h3 className="mb-2 text-lg font-black text-[#1E1035]">{stepTitle}</h3>
 
         {/* Description */}
         <p className="text-sm font-semibold leading-relaxed text-slate-600">
-          {step.description}
+          {stepDesc}
         </p>
       </motion.div>
     </motion.div>
@@ -233,6 +237,7 @@ interface DesignProcessProps {
 export default function DesignProcess({ onOpenCustomizer }: DesignProcessProps = {}) {
   const reducedMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
+  const { t } = useLanguage();
 
   return (
     <section
@@ -254,14 +259,14 @@ export default function DesignProcess({ onOpenCustomizer }: DesignProcessProps =
           transition={{ duration: 0.6 }}
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-pink-300/80 bg-white/80 px-4 py-1 text-xs font-black uppercase tracking-widest text-pink-700 shadow-sm backdrop-blur-md mb-3">
-            <span>LADA GIFT • Đơn giản & Nhanh chóng</span>
+            <span>{t("process_tag")}</span>
           </div>
           <h2 className="text-3xl font-black text-[#1E1035] md:text-4xl lg:text-5xl">
-            QUY TRÌNH{' '}
+            {t("process_title")}{" "}
             <span
               className="bg-clip-text text-transparent bg-gradient-to-r from-pink-600 via-purple-600 to-sky-600"
             >
-              ĐẶT HÀNG IN MICA
+              LADA GIFT
             </span>
           </h2>
           <div
@@ -318,7 +323,7 @@ export default function DesignProcess({ onOpenCustomizer }: DesignProcessProps =
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-sky-500 px-8 py-3.5 text-sm font-extrabold text-white shadow-xl shadow-pink-400/35 transition hover:brightness-110 active:scale-95 cursor-pointer"
             >
               <Upload className="h-4 w-4" />
-              <span>Mở Studio tải ảnh & Tự thiết kế ngay</span>
+              <span>{t("hero_btn_customize")}</span>
             </button>
           </div>
         )}

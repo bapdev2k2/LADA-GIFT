@@ -267,7 +267,7 @@ export default function SizeSelector({ onSelectSize }: SizeSelectorProps = {}) {
                       isSelected ? "text-pink-600" : "text-slate-500"
                     }`}
                   >
-                    {size.description}
+                    {size.label === "S" ? t("size_s_desc") : size.label === "L" ? t("size_l_desc") : t("size_xl_desc")}
                   </p>
 
                   {/* Size indicator bar */}
@@ -325,8 +325,7 @@ export default function SizeSelector({ onSelectSize }: SizeSelectorProps = {}) {
                 transition={{ duration: 0.2 }}
               >
                 <span className="inline-block text-xs font-black text-[#1E1035] bg-white/90 px-5 py-2 rounded-full border border-pink-300 shadow-sm whitespace-nowrap">
-                  Kích thước thực tế:{" "}
-                  <span className="text-pink-600 font-extrabold">Size {selectedSizeData.label} ({selectedSizeData.dimension})</span> — Mica dày 3.5mm vát cạnh kim cương
+                  {t("size_real_badge", { size: selectedSizeData.label, dim: selectedSizeData.dimension })}
                 </span>
               </motion.div>
             </AnimatePresence>

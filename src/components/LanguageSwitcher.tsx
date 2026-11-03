@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Globe } from "lucide-react";
-import { useLanguage, LANGUAGES, Language } from "@/lib/i18n";
+import { ChevronDown } from "lucide-react";
+import { useLanguage, LANGUAGES } from "@/lib/i18n";
 
 export default function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
@@ -27,15 +27,15 @@ export default function LanguageSwitcher() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 rounded-full border border-pink-200/90 bg-white/80 px-3 py-1.5 text-xs font-black text-slate-800 shadow-sm backdrop-blur-md hover:bg-white hover:border-pink-300 transition-all cursor-pointer"
+        className="flex items-center gap-2 rounded-full border border-pink-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-black text-slate-800 shadow-sm backdrop-blur-md hover:bg-white hover:border-pink-400 hover:shadow-md transition-all cursor-pointer whitespace-nowrap"
         aria-label="Change language"
       >
         <span className="text-base leading-none">{currentOption.flag}</span>
-        <span className="uppercase tracking-wider font-extrabold text-[11px] text-[#1E1035]">
-          {currentOption.code}
+        <span className="font-extrabold text-xs text-[#1E1035]">
+          {currentOption.name}
         </span>
         <ChevronDown
-          className={`h-3 w-3 text-slate-500 transition-transform duration-200 ${
+          className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-200 ${
             isOpen ? "rotate-180 text-pink-600" : ""
           }`}
         />
@@ -48,7 +48,7 @@ export default function LanguageSwitcher() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-1.5 w-40 origin-top-right rounded-2xl border border-pink-200/80 bg-white/95 p-1.5 shadow-xl backdrop-blur-xl z-50"
+            className="absolute right-0 mt-1.5 w-48 origin-top-right rounded-2xl border border-pink-200/90 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl z-50"
           >
             {LANGUAGES.map((opt) => {
               const isSelected = opt.code === language;
@@ -60,18 +60,22 @@ export default function LanguageSwitcher() {
                     setLanguage(opt.code);
                     setIsOpen(false);
                   }}
-                  className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-bold transition-colors cursor-pointer ${
+                  className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-bold transition-colors cursor-pointer ${
                     isSelected
                       ? "bg-pink-50 text-pink-700 font-black border border-pink-200"
                       : "text-slate-700 hover:bg-slate-50 hover:text-pink-600"
                   }`}
                 >
-                  <span className="text-base leading-none">{opt.flag}</span>
+                  <span className="text-lg leading-none">{opt.flag}</span>
                   <div className="flex flex-col">
-                    <span className="text-xs leading-tight">{opt.nativeName}</span>
-                    <span className="text-[9px] text-slate-400 font-normal">{opt.name}</span>
+                    <span className="text-xs font-black leading-tight text-[#1E1035]">
+                      {opt.name}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      {opt.nativeName}
+                    </span>
                   </div>
-                  {isSelected && <span className="ml-auto text-pink-600 text-xs font-black">✓</span>}
+                  {isSelected && <span className="ml-auto text-pink-600 text-sm font-black">✓</span>}
                 </button>
               );
             })}
