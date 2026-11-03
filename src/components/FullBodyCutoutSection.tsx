@@ -39,10 +39,8 @@ const PRESETS: DemoPreset[] = [
   {
     id: "couple",
     tabLabelKey: "diecut_tab_couple",
-    originalImage:
-      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=700&auto=format&fit=crop&q=85",
-    cutoutImage:
-      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=700&auto=format&fit=crop&q=85",
+    originalImage: "/gallery/gallery-4.jpg",
+    cutoutImage: "/gallery/gallery-4.jpg",
     originalAlt: "Couple portrait snapshot before background removal",
     cutoutAlt: "Couple acrylic cutout silhouette",
     contourShape: "rounded-3xl",
@@ -51,10 +49,8 @@ const PRESETS: DemoPreset[] = [
   {
     id: "pet",
     tabLabelKey: "diecut_tab_pet",
-    originalImage:
-      "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=700&auto=format&fit=crop&q=85",
-    cutoutImage:
-      "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=700&auto=format&fit=crop&q=85",
+    originalImage: "/gallery/gallery-6.jpg",
+    cutoutImage: "/gallery/gallery-6.jpg",
     originalAlt: "Pet portrait snapshot before background removal",
     cutoutAlt: "Pet acrylic cutout silhouette",
     contourShape: "rounded-3xl",
@@ -63,10 +59,8 @@ const PRESETS: DemoPreset[] = [
   {
     id: "single",
     tabLabelKey: "diecut_tab_single",
-    originalImage:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=700&auto=format&fit=crop&q=85",
-    cutoutImage:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=700&auto=format&fit=crop&q=85",
+    originalImage: "/gallery/gallery-2.jpg",
+    cutoutImage: "/gallery/gallery-2.jpg",
     originalAlt: "Individual portrait snapshot before background removal",
     cutoutAlt: "Individual portrait acrylic cutout",
     contourShape: "rounded-3xl",
