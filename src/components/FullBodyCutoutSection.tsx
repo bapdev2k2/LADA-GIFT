@@ -31,7 +31,7 @@ interface DemoPreset {
   cutoutImage: string;
   originalAlt: string;
   cutoutAlt: string;
-  contourShape: string; // SVG path or silhouette mask style
+  contourShape: string;
   aspectRatio: string;
 }
 
@@ -39,30 +39,30 @@ const PRESETS: DemoPreset[] = [
   {
     id: "couple",
     tabLabelKey: "diecut_tab_couple",
-    originalImage: "/gallery/gallery-4.jpg",
-    cutoutImage: "/gallery/gallery-4.jpg",
-    originalAlt: "Couple portrait snapshot before background removal",
-    cutoutAlt: "Couple acrylic cutout silhouette",
+    originalImage: "/fullbody/couple-original.png",
+    cutoutImage: "/fullbody/couple-cutout.png",
+    originalAlt: "Ảnh gốc cặp đôi trước khi tách nền",
+    cutoutAlt: "Ảnh mica cặp đôi toàn thân đã tách sạch nền",
     contourShape: "rounded-3xl",
     aspectRatio: "aspect-[4/5]",
   },
   {
     id: "pet",
     tabLabelKey: "diecut_tab_pet",
-    originalImage: "/gallery/gallery-6.jpg",
-    cutoutImage: "/gallery/gallery-6.jpg",
-    originalAlt: "Pet portrait snapshot before background removal",
-    cutoutAlt: "Pet acrylic cutout silhouette",
+    originalImage: "/fullbody/pet-original.webp",
+    cutoutImage: "/fullbody/pet-cutout.png",
+    originalAlt: "Ảnh gốc thú cưng trước khi tách nền",
+    cutoutAlt: "Ảnh mica thú cưng toàn thân đã tách sạch nền",
     contourShape: "rounded-3xl",
     aspectRatio: "aspect-[4/5]",
   },
   {
     id: "single",
     tabLabelKey: "diecut_tab_single",
-    originalImage: "/gallery/gallery-2.jpg",
-    cutoutImage: "/gallery/gallery-2.jpg",
-    originalAlt: "Individual portrait snapshot before background removal",
-    cutoutAlt: "Individual portrait acrylic cutout",
+    originalImage: "/fullbody/idol-original.png",
+    cutoutImage: "/fullbody/idol-cutout.png",
+    originalAlt: "Ảnh gốc chân dung idol trước khi tách nền",
+    cutoutAlt: "Ảnh mica chân dung idol toàn thân đã tách sạch nền",
     contourShape: "rounded-3xl",
     aspectRatio: "aspect-[4/5]",
   },
@@ -214,34 +214,33 @@ export default function FullBodyCutoutSection({
             </div>
 
             {/* Cutout visual with transparent checkerboard & neon laser contour */}
-            <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:12px_12px] bg-[#fafafa] flex items-center justify-center border-2 border-pink-400/50">
+            <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-[radial-gradient(#cbd5e1_1.5px,transparent_1.5px)] [background-size:14px_14px] bg-[#f8fafc] flex items-center justify-center border-2 border-pink-400/60 p-4">
               {/* Pulsing neon contour aura */}
-              <div className="absolute inset-4 rounded-2xl border-2 border-dashed border-pink-500/60 animate-pulse pointer-events-none" />
+              <div className="absolute inset-3 rounded-2xl border-2 border-dashed border-pink-400/40 animate-pulse pointer-events-none" />
 
               {/* Glowing laser dot moving around */}
               <motion.div
                 animate={{
-                  x: [0, 80, 0, -80, 0],
-                  y: [-120, -50, 100, -50, -120],
+                  x: [0, 90, 0, -90, 0],
+                  y: [-120, -40, 110, -40, -120],
                 }}
-                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-                className="absolute w-3 h-3 bg-cyan-400 rounded-full shadow-[0_0_12px_#06b6d4] z-20 pointer-events-none"
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                className="absolute w-3.5 h-3.5 bg-cyan-400 rounded-full shadow-[0_0_14px_#06b6d4] z-20 pointer-events-none"
               />
 
-              {/* Cutout silhouette simulation */}
-              <div className="relative w-4/5 h-4/5 rounded-2xl overflow-hidden shadow-2xl shadow-pink-500/20 border-2 border-cyan-400/80">
+              {/* Cutout silhouette display */}
+              <div className="relative w-full h-[88%] flex items-center justify-center">
                 <Image
                   src={activePreset.cutoutImage}
                   alt={activePreset.cutoutAlt}
                   fill
-                  className="object-cover brightness-105 contrast-105"
+                  className="object-contain p-2 filter drop-shadow-[0_12px_24px_rgba(236,72,153,0.35)] drop-shadow-[0_0_8px_rgba(6,182,212,0.4)]"
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/10 to-cyan-500/10 pointer-events-none" />
               </div>
 
               {/* Laser Cutline label */}
-              <div className="absolute bottom-3 left-3 right-3 text-xs text-pink-800 font-semibold bg-white/90 backdrop-blur-md p-2 rounded-lg border border-pink-200 text-center shadow-sm">
+              <div className="absolute bottom-3 left-3 right-3 text-xs text-pink-800 font-bold bg-white/95 backdrop-blur-md p-2 rounded-lg border border-pink-200 text-center shadow-md">
                 ✂️ {t("diecut_step2_note")}
               </div>
             </div>
@@ -269,19 +268,19 @@ export default function FullBodyCutoutSection({
             </div>
 
             {/* Acrylic 3D mockup display */}
-            <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100/60 to-pink-100/60 flex items-center justify-center border border-white/60 p-4">
+            <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100/70 via-pink-50/60 to-indigo-100/70 flex items-center justify-center border border-white/80 p-4">
               {/* 3D Acrylic block container with bevel shine */}
-              <div className="relative w-4/5 h-[88%] rounded-2xl overflow-hidden shadow-[0_16px_36px_rgba(79,70,229,0.22)] border-[3.5px] border-white/90 backdrop-blur-sm bg-white/20">
+              <div className="relative w-full h-[85%] flex items-center justify-center">
                 {/* Simulated Heart keychain or magnet fixture at top/back */}
                 {finishOption === "keychain" ? (
-                  <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center">
-                    <div className="w-5 h-5 rounded-full border-2 border-amber-300 bg-amber-100/90 shadow flex items-center justify-center">
-                      <Heart className="w-3 h-3 text-amber-600 fill-amber-500" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center">
+                    <div className="w-6 h-6 rounded-full border-2 border-amber-300 bg-amber-100/95 shadow-md flex items-center justify-center">
+                      <Heart className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
                     </div>
-                    <div className="w-1 h-3 bg-amber-400 shadow-sm" />
+                    <div className="w-1.5 h-3.5 bg-amber-400 shadow-sm" />
                   </div>
                 ) : (
-                  <div className="absolute top-2 right-2 z-30 px-2 py-0.5 rounded-md bg-purple-900/80 text-white text-[10px] font-bold flex items-center gap-1 shadow-md">
+                  <div className="absolute top-2 right-2 z-30 px-2 py-0.5 rounded-md bg-purple-900/85 text-white text-[10px] font-bold flex items-center gap-1 shadow-md backdrop-blur-sm">
                     <Magnet className="w-3 h-3 text-pink-300" />
                     Neodymium
                   </div>
@@ -291,15 +290,12 @@ export default function FullBodyCutoutSection({
                   src={activePreset.cutoutImage}
                   alt={activePreset.cutoutAlt}
                   fill
-                  className="object-cover"
+                  className="object-contain p-2 filter drop-shadow-[0_16px_28px_rgba(79,70,229,0.3)] brightness-105"
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
 
                 {/* Glass reflection shine stripe */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent pointer-events-none transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-
-                {/* 3.5mm Acrylic depth edge illusion */}
-                <div className="absolute inset-0 rounded-2xl border-2 border-white/60 pointer-events-none shadow-[inset_0_2px_8px_rgba(255,255,255,0.8),inset_0_-4px_8px_rgba(0,0,0,0.15)]" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/35 to-transparent pointer-events-none transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000" />
               </div>
 
               {/* Quick toggle at bottom of Step 3 */}
