@@ -10,12 +10,13 @@ export interface LanguageOption {
   label: string;
   nativeName: string;
   flag: string;
+  flagImg: string;
 }
 
 export const LANGUAGES: LanguageOption[] = [
-  { code: "vi", name: "Tiếng Việt", label: "Tiếng Việt", nativeName: "Tiếng Việt", flag: "🇻🇳" },
-  { code: "en", name: "Tiếng Anh", label: "Tiếng Anh", nativeName: "English", flag: "🇬🇧" },
-  { code: "th", name: "Tiếng Thái Lan", label: "Tiếng Thái Lan", nativeName: "ภาษาไทย", flag: "🇹🇭" },
+  { code: "vi", name: "VN", label: "VN", nativeName: "Tiếng Việt", flag: "🇻🇳", flagImg: "/flags/vn.webp" },
+  { code: "en", name: "EN", label: "EN", nativeName: "English", flag: "🇬🇧", flagImg: "/flags/en.webp" },
+  { code: "th", name: "TH", label: "TH", nativeName: "ภาษาไทย", flag: "🇹🇭", flagImg: "/flags/th.webp" },
 ];
 
 export const translations = {

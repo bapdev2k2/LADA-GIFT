@@ -27,11 +27,17 @@ export default function LanguageSwitcher() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-full border border-pink-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-black text-slate-800 shadow-sm backdrop-blur-md hover:bg-white hover:border-pink-400 hover:shadow-md transition-all cursor-pointer whitespace-nowrap"
+        className="flex items-center gap-2 rounded-full border border-pink-200/90 bg-white/90 px-3 py-1.5 text-xs font-black text-slate-800 shadow-sm backdrop-blur-md hover:bg-white hover:border-pink-400 hover:shadow-md transition-all cursor-pointer whitespace-nowrap"
         aria-label="Change language"
       >
-        <span className="text-base leading-none">{currentOption.flag}</span>
-        <span className="font-extrabold text-xs text-[#1E1035]">
+        <div className="h-4 w-6 rounded-[3px] overflow-hidden border border-slate-300 shadow-xs flex-shrink-0 flex items-center justify-center bg-slate-100">
+          <img
+            src={currentOption.flagImg}
+            alt={currentOption.name}
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <span className="font-black text-xs text-[#1E1035] tracking-wide">
           {currentOption.name}
         </span>
         <ChevronDown
@@ -48,7 +54,7 @@ export default function LanguageSwitcher() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-1.5 w-48 origin-top-right rounded-2xl border border-pink-200/90 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl z-50"
+            className="absolute right-0 mt-1.5 w-44 origin-top-right rounded-2xl border border-pink-200/90 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl z-50"
           >
             {LANGUAGES.map((opt) => {
               const isSelected = opt.code === language;
@@ -60,21 +66,25 @@ export default function LanguageSwitcher() {
                     setLanguage(opt.code);
                     setIsOpen(false);
                   }}
-                  className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-bold transition-colors cursor-pointer ${
+                  className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-bold transition-colors cursor-pointer ${
                     isSelected
                       ? "bg-pink-50 text-pink-700 font-black border border-pink-200"
                       : "text-slate-700 hover:bg-slate-50 hover:text-pink-600"
                   }`}
                 >
-                  <span className="text-lg leading-none">{opt.flag}</span>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-black leading-tight text-[#1E1035]">
-                      {opt.name}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      {opt.nativeName}
-                    </span>
+                  <div className="h-4 w-6 rounded-[3px] overflow-hidden border border-slate-300 shadow-xs flex-shrink-0 flex items-center justify-center bg-slate-100">
+                    <img
+                      src={opt.flagImg}
+                      alt={opt.name}
+                      className="h-full w-full object-cover"
+                    />
                   </div>
+                  <span className="text-xs font-black text-[#1E1035] tracking-wide">
+                    {opt.name}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    ({opt.nativeName})
+                  </span>
                   {isSelected && <span className="ml-auto text-pink-600 text-sm font-black">✓</span>}
                 </button>
               );
