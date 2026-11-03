@@ -14,25 +14,46 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LADA GIFT – Quà Tặng Mica In Hình Cao Cấp | Gift From The Heart",
+  metadataBase: new URL("https://ladagift.com"),
+  title: "LADA GIFT – Quà Tặng Mica In Hình Theo Yêu Cầu Cao Cấp",
   description:
-    "Thương hiệu LADA GIFT chuyên sản xuất móc khóa mica, nam châm in hình cá nhân hóa theo yêu cầu. Lưu giữ những khoảnh khắc đặc biệt từ trái tim.",
+    "Xưởng sản xuất móc khóa mica, ảnh nam châm tủ lạnh in theo yêu cầu cao cấp LADA GIFT. Mica Acrylic đúc 3.5mm vát cạnh kim cương CNC siêu bóng, bền màu 10 năm.",
   keywords: [
     "LADA GIFT",
     "lada gift",
     "móc khóa mica",
     "móc khóa lada gift",
     "nam châm in hình",
+    "ảnh mica nam châm",
     "quà tặng cá nhân hóa",
     "in mica theo yêu cầu",
     "gift from the heart",
   ],
+  authors: [{ name: "LADA GIFT", url: "https://ladagift.com" }],
+  creator: "LADA GIFT",
+  publisher: "LADA GIFT",
   openGraph: {
-    title: "LADA GIFT – Quà Tặng Mica In Hình Cao Cấp",
+    title: "LADA GIFT – Quà Tặng Mica In Hình Theo Yêu Cầu Cao Cấp",
     description:
-      "Biến những khoảnh khắc đáng nhớ thành những món phụ kiện mica độc đáo cùng LADA GIFT.",
-    type: "website",
+      "Xưởng sản xuất móc khóa mica, ảnh nam châm tủ lạnh in theo yêu cầu cao cấp LADA GIFT. Mica đúc 3.5mm vát cạnh kim cương CNC bóng loáng, bền đẹp 10 năm.",
+    url: "https://ladagift.com",
+    siteName: "LADA GIFT",
+    images: [
+      {
+        url: "/lada-gift-logo.jpg",
+        width: 1024,
+        height: 1024,
+        alt: "LADA GIFT – Quà Tặng Mica In Hình Cao Cấp",
+      },
+    ],
     locale: "vi_VN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LADA GIFT – Quà Tặng Mica In Hình Theo Yêu Cầu Cao Cấp",
+    description:
+      "Xưởng sản xuất móc khóa mica, ảnh nam châm tủ lạnh in theo yêu cầu cao cấp LADA GIFT. Mica đúc 3.5mm vát cạnh kim cương CNC bóng loáng.",
     images: ["/lada-gift-logo.jpg"],
   },
   icons: {
