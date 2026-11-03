@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ProductShowcase from "@/components/ProductShowcase";
 import ProductRotation from "@/components/ProductRotation";
+import FullBodyCutoutSection from "@/components/FullBodyCutoutSection";
 import SizeSelector from "@/components/SizeSelector";
 import DesignProcess from "@/components/DesignProcess";
 import Gallery from "@/components/Gallery";
@@ -100,6 +101,13 @@ export default function Home() {
         <section id="showroom" className="scroll-mt-24">
           <ProductRotation onOpenCustomizer={() => handleOpenCustomizer("keychain", "L")} />
         </section>
+
+        <SectionDivider />
+
+        {/* 2.5 Full-Body Cutout Section (Ảnh mica nam châm toàn thân) */}
+        <FullBodyCutoutSection
+          onOpenCustomizer={(cat) => handleOpenCustomizer(cat || "mica-magnet", "L")}
+        />
 
         <SectionDivider />
 
