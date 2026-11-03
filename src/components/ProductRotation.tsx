@@ -146,12 +146,33 @@ export default function ProductRotation({
 
   // Active state indicator for UI
   const [hoveredCardIdx, setHoveredCardIdx] = useState<number | null>(null);
+  const isVisibleRef = useRef(true);
+
+  // Pause animation loop when showroom is off-screen to save 100% CPU/GPU resources
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+      },
+      { threshold: 0.05 }
+    );
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let animId: number;
     let lastTime = performance.now();
 
     const loop = (currentTime: number) => {
+      if (!isVisibleRef.current) {
+        lastTime = currentTime;
+        animId = requestAnimationFrame(loop);
+        return;
+      }
+
       const delta = Math.min((currentTime - lastTime) / 1000, 0.1);
       lastTime = currentTime;
 

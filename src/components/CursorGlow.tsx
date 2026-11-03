@@ -31,12 +31,13 @@ export default function CursorGlow() {
 
   return (
     <motion.div
-      className="pointer-events-none fixed top-0 left-0 z-[9999]"
+      className="pointer-events-none fixed top-0 left-0 z-[9999] will-change-transform"
       style={{
         x: smoothX,
         y: smoothY,
         translateX: "-50%",
         translateY: "-50%",
+        transform: "translate3d(0,0,0)",
       }}
     >
       <div className="relative">

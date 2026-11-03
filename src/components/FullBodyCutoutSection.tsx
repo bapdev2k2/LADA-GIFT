@@ -69,24 +69,17 @@ const PRESETS: DemoPreset[] = [
 ];
 
 const ACRYLIC_MICA_FILTER = [
-  // 1. Viền nhựa mica đúc viền bo sát quanh dáng người & vật (4-5px solid white acrylic contour)
-  "drop-shadow(5px 0 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(-5px 0 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(0 5px 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(0 -5px 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(4px 4px 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(-4px -4px 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(4px -4px 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(-4px 4px 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(2px 5px 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(-2px -5px 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(5px 2px 0 rgba(255, 255, 255, 0.98))",
-  "drop-shadow(-5px -2px 0 rgba(255, 255, 255, 0.98))",
-  // 2. Viền vát quang học kim cương sáng bóng (Diamond bevel crystal light rim)
-  "drop-shadow(0 0 2px rgba(186, 230, 253, 0.95))",
-  "drop-shadow(0 0 6px rgba(255, 255, 255, 0.85))",
-  // 3. Đổ bóng 3D của tấm mica dày 3.5mm nổi khối (3D cast shadow)
-  "drop-shadow(0 18px 28px rgba(30, 16, 60, 0.35))",
+  // Viền mỏng khoảng 2px ôm sát mẫu sắc nét (Thin 2px crisp acrylic stroke)
+  "drop-shadow(2px 0 0 #ffffff)",
+  "drop-shadow(-2px 0 0 #ffffff)",
+  "drop-shadow(0 2px 0 #ffffff)",
+  "drop-shadow(0 -2px 0 #ffffff)",
+  "drop-shadow(1.5px 1.5px 0 #ffffff)",
+  "drop-shadow(-1.5px -1.5px 0 #ffffff)",
+  "drop-shadow(1.5px -1.5px 0 #ffffff)",
+  "drop-shadow(-1.5px 1.5px 0 #ffffff)",
+  // Đổ bóng 3D tự nhiên nhẹ nhàng
+  "drop-shadow(0 8px 16px rgba(30, 16, 60, 0.18))",
 ].join(" ");
 
 export default function FullBodyCutoutSection({
@@ -106,10 +99,9 @@ export default function FullBodyCutoutSection({
       id="cutout-section"
       className="relative py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden"
     >
-      {/* Decorative ambient background glows */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-pink-400/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-400/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-cyan-300/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Decorative ambient background glows - optimized with radial gradients */}
+      <div className="absolute top-1/4 -left-24 w-80 h-80 bg-[radial-gradient(circle,rgba(244,114,182,0.12)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-24 w-80 h-80 bg-[radial-gradient(circle,rgba(168,85,247,0.12)_0%,transparent_70%)] pointer-events-none" />
 
       {/* Header Section */}
       <div className="text-center max-w-3xl mx-auto mb-14 relative z-10">
@@ -237,25 +229,15 @@ export default function FullBodyCutoutSection({
             {/* Cutout visual with transparent checkerboard & neon laser contour */}
             <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-[radial-gradient(#cbd5e1_1.5px,transparent_1.5px)] [background-size:14px_14px] bg-[#f8fafc] flex items-center justify-center border-2 border-pink-400/60 p-4">
               {/* Pulsing neon contour aura */}
-              <div className="absolute inset-3 rounded-2xl border-2 border-dashed border-pink-400/40 animate-pulse pointer-events-none" />
-
-              {/* Glowing laser dot moving around */}
-              <motion.div
-                animate={{
-                  x: [0, 90, 0, -90, 0],
-                  y: [-120, -40, 110, -40, -120],
-                }}
-                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                className="absolute w-3.5 h-3.5 bg-cyan-400 rounded-full shadow-[0_0_14px_#06b6d4] z-20 pointer-events-none"
-              />
+              <div className="absolute inset-3 rounded-2xl border-2 border-dashed border-pink-400/50 pointer-events-none" />
 
               {/* Cutout silhouette display */}
-              <div className="relative w-full h-[88%] flex items-center justify-center">
+              <div className="relative w-full h-[88%] flex items-center justify-center will-change-transform">
                 <Image
                   src={activePreset.cutoutImage}
                   alt={activePreset.cutoutAlt}
                   fill
-                  className="object-contain p-2 filter drop-shadow-[0_12px_24px_rgba(236,72,153,0.35)] drop-shadow-[0_0_8px_rgba(6,182,212,0.4)]"
+                  className="object-contain p-2 filter drop-shadow-[0_8px_16px_rgba(236,72,153,0.3)] drop-shadow-[0_0_4px_rgba(6,182,212,0.35)]"
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>
@@ -291,7 +273,10 @@ export default function FullBodyCutoutSection({
             {/* Acrylic 3D mockup display */}
             <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100/70 via-pink-50/60 to-indigo-100/70 flex items-center justify-center border border-white/80 p-4">
               {/* 3D Acrylic block container with bevel shine */}
-              <div className="relative w-full h-[85%] flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500">
+              <div
+                className="relative w-full h-[85%] flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500 will-change-transform"
+                style={{ transform: "translate3d(0, 0, 0)" }}
+              >
                 {/* Simulated Heart keychain or magnet fixture at top/back */}
                 {finishOption === "keychain" ? (
                   <motion.div

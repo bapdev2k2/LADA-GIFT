@@ -17,22 +17,22 @@ interface FloatingElement {
 export default function HolographicBackground() {
   const reducedMotion = useReducedMotion();
 
-  // Floating ambient elements (sparkles, hearts, bubbles)
+  // Floating ambient elements (sparkles, hearts, bubbles) - optimized count for 60fps smoothness
   const floatingElements: FloatingElement[] = useMemo(() => {
-    return Array.from({ length: 32 }, (_, i) => ({
+    return Array.from({ length: 14 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 14 + 6,
-      duration: Math.random() * 14 + 10,
-      delay: Math.random() * 6,
+      size: Math.random() * 12 + 6,
+      duration: Math.random() * 12 + 10,
+      delay: Math.random() * 5,
       type: i % 3 === 0 ? "star" : i % 3 === 1 ? "heart" : "bubble",
     }));
   }, []);
 
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none"
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none will-change-transform"
       aria-hidden="true"
     >
       {/* 1. Base Holographic Background Image (Image 2) */}
@@ -40,7 +40,6 @@ export default function HolographicBackground() {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
         style={{
           backgroundImage: "url('/hologram-bg.png')",
-          backgroundAttachment: "fixed",
         }}
       />
 
